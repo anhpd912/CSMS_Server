@@ -12,6 +12,6 @@ import java.util.UUID;
 @Repository
 public interface AttendanceRepository extends JpaRepository<Attendance, UUID> {
     List<Attendance> findByUser(User user);
-    Attendance findByUserIdAndDate(UUID userId, String date);
+//    Attendance findByUserIdAndDate(UUID userId, String date);
     List<Attendance> findByUserId(UUID userId);
 }
