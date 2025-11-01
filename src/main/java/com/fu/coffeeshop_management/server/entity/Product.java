@@ -56,7 +56,7 @@ public class Product {
 
     // A product can have many stock movements
     @OneToMany(mappedBy = "product")
-    private Set<StockMovement> stockMovements;
+    private Set<InventoryTransaction> inventoryTransactions;
 
     // A product has one stock record
     @OneToOne(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
