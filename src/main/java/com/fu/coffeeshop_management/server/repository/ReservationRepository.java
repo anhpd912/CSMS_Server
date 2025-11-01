@@ -15,6 +15,8 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
      */
     List<Reservation> findByUserId(UUID userId);
 
+    List<Reservation> findByCustomer(String customer)
+
     /**
      * Finds reservations for a specific table.
      */

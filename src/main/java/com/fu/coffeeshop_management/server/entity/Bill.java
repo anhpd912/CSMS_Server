@@ -5,10 +5,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.GenericGenerator;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -23,39 +23,32 @@ import java.util.UUID;
 @Table(name = "bill")
 public class Bill {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id", length = 36, nullable = false, updatable = false)
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+    @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
-    @Column(name = "total_amount", precision = 10, scale = 2, nullable = false)
-    private BigDecimal totalAmount;
-
-    @Column(name = "discount_amount", precision = 10, scale = 2)
-    private BigDecimal discountAmount;
-
-    @Column(name = "final_amount", precision = 10, scale = 2, nullable = false)
-    private BigDecimal finalAmount;
-
-    @Column(name = "created_at", nullable = false, updatable = false)
-    @Builder.Default
-    private LocalDateTime createdAt = LocalDateTime.now();
-
-    @Column(name = "status", length = 50, nullable = false)
-    private String status; // e.g., "Unpaid", "Paid"
-
-    // --- Relationships ---
-
-    // Foreign Key: order_id -> order.id (One-to-One)
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false, unique = true)
     private Order order;
 
-    // Foreign Key: cashier_id -> user.id (The cashier who processed the bill)
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cashier_id")
-    private User cashier;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "payment_id", nullable = false, unique = true)
+    private Payment payment;
 
-    // A bill can have multiple payment parts
-    @OneToMany(mappedBy = "bill", cascade = CascadeType.ALL)
-    private Set<BillPayment> payments;
+    @Column(name = "discount", precision = 10, scale = 2)
+    private BigDecimal discount;
+
+    @Column(name = "tax", precision = 10, scale = 2)
+    private BigDecimal tax;
+
+    @Column(name = "final_amount", nullable = false, precision = 10, scale = 2)
+    private BigDecimal finalAmount;
+
+    @Column(name = "issued_time", nullable = false)
+    private LocalDateTime issuedTime;
+
+    @Column(name = "payment_status", nullable = false)
+    private String paymentStatus;
+
 }
