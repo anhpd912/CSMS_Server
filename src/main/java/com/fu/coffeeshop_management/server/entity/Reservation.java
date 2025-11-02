@@ -34,8 +34,8 @@ public class Reservation {
     @Column(name = "reservation_time", nullable = false)
     private LocalDateTime reservationTime;
 
-    @Column(name = "party_size", nullable = false)
-    private Integer partySize;
+    @Column(name = "num_guests", nullable = false)
+    private Integer numGuests;
 
     @Column(name = "status", length = 50, nullable = false)
     private String status; // e.g., "Pending", "Confirmed", "Cancelled"

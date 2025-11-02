@@ -29,8 +29,11 @@ public class TableInfo {
     @Column(name = "status", length = 50, nullable = false)
     private String status; // e.g., "Available", "Occupied", "Reserved"
 
-    @Column(name = "capacity", nullable = false)
-    private Integer capacity;
+    @Column(name = "location", length = 50, nullable = false)
+    private String location; // e.g., "Indoor", "Outdoor", "Balcony"
+
+    @Column(name = "sheet_count", nullable = false)
+    private Integer sheetCount;
 
     // --- Relationships ---
 
