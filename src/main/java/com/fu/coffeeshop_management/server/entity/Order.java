@@ -37,6 +37,9 @@ public class Order {
     @Builder.Default
     private LocalDateTime updatedAt = LocalDateTime.now();
 
+    @Column(name = "total_price", nullable = false, precision = 10, scale = 2)
+    private Double totalPrice;
+
     // --- Relationships ---
 
     // Foreign Key: table_id -> table_info.id
@@ -44,15 +47,20 @@ public class Order {
     @JoinColumn(name = "table_id", nullable = false)
     private TableInfo table;
 
-    // Foreign Key: user_id -> user.id (The waiter who created the order)
+    // Foreign Key: staff_id -> user.id (The waiter who created the order)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @JoinColumn(name = "staff_id", nullable = false)
+    private User staff;
 
     // An order has many items (order_details)
     // Cascade.ALL means if we delete an order, delete its details too.
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<OrderDetail> orderDetails;
+
+    // Foreign Key: customer_id -> customer.id
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id")
+    private Customer customer;
 
     // An order has one bill
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)

@@ -27,7 +27,7 @@ public class Loyalty {
     @Column(name = "loyalty_id", length = 36, nullable = false, updatable = false)
     private UUID loyaltyId;
 
-    @Column(name = "points", nullable = false)
+    @Column(name = "points_balance", nullable = false)
     @Builder.Default
     private Integer points = 0;
 
