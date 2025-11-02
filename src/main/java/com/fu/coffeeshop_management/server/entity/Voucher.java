@@ -17,8 +17,8 @@ public class Voucher {
     @Id
     @GeneratedValue(generator = "UUID")
     @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
-    @Column(name = "voucher_id", updatable = false, nullable = false)
-    private UUID voucherId;
+    @Column(name = "id", updatable = false, nullable = false)
+    private UUID id;
 
     @Column(name = "code", nullable = false, unique = true)
     private String code;
