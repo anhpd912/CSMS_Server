@@ -39,6 +39,7 @@ public class SecurityConfig {
                 // Define URL-based authorization rules
                 .authorizeHttpRequests(auth -> auth
                         // Allow all requests to the /api/auth/** endpoints (login, register)
+                        .requestMatchers("/api/v1/vouchers/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         // All other requests must be authenticated
                         .anyRequest().authenticated()
