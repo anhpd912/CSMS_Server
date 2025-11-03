@@ -1,7 +1,9 @@
 package com.fu.coffeeshop_management.server.config;
 
+import com.fu.coffeeshop_management.server.entity.Category;
 import com.fu.coffeeshop_management.server.entity.Role;
 import com.fu.coffeeshop_management.server.entity.User;
+import com.fu.coffeeshop_management.server.repository.CategoryRepository;
 import com.fu.coffeeshop_management.server.repository.RoleRepository;
 import com.fu.coffeeshop_management.server.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
@@ -17,16 +19,20 @@ public class DataSeeder implements CommandLineRunner {
 
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
+    private final CategoryRepository categoryRepository;
 
-    public DataSeeder(RoleRepository roleRepository, UserRepository userRepository) {
+
+    public DataSeeder(RoleRepository roleRepository, UserRepository userRepository, CategoryRepository categoryRepository) {
         this.roleRepository = roleRepository;
         this.userRepository = userRepository;
+        this.categoryRepository = categoryRepository;
     }
 
     @Override
     public void run(String... args) throws Exception {
         seedRoles();
         seedManager();
+        seedCategoryProduct();
     }
 
     private void seedRoles() {
@@ -50,6 +56,33 @@ public class DataSeeder implements CommandLineRunner {
                     .fullname("Manager")
                     .build()
             );
+        }
+    }
+
+    private void seedCategoryProduct() {
+        if (categoryRepository.findByName("COFFEE").isEmpty()) {
+            categoryRepository.save(Category.builder()
+                    .description("Coffee drinks")
+                    .name("COFFEE")
+                    .build());
+        }
+        if (categoryRepository.findByName("BUBBLE TEA").isEmpty()) {
+            categoryRepository.save(Category.builder()
+                    .description("Bubble tea lady drinks")
+                    .name("BUBBLE TEA")
+                    .build());
+        }
+        if (categoryRepository.findByName("TEA").isEmpty()) {
+            categoryRepository.save(Category.builder()
+                    .description("Tea drinks")
+                    .name("TEA")
+                    .build());
+        }
+        if (categoryRepository.findByName("JUICE").isEmpty()) {
+            categoryRepository.save(Category.builder()
+                    .description("Juice drinks")
+                    .name("Juice")
+                    .build());
         }
     }
 }

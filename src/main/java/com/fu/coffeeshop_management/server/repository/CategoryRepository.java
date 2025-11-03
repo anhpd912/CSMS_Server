@@ -13,4 +13,5 @@ public interface CategoryRepository extends JpaRepository<Category,UUID>{
      * Finds a category by its name. Useful for ensuring no duplicate categories.
      */
     Optional<Category> findByName(String name);
+
 }
