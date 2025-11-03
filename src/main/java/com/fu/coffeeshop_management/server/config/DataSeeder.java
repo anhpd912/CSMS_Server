@@ -1,8 +1,11 @@
 package com.fu.coffeeshop_management.server.config;
 
 import com.fu.coffeeshop_management.server.entity.Role;
+import com.fu.coffeeshop_management.server.entity.User;
 import com.fu.coffeeshop_management.server.repository.RoleRepository;
+import com.fu.coffeeshop_management.server.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
 /**
@@ -13,14 +16,17 @@ import org.springframework.stereotype.Component;
 public class DataSeeder implements CommandLineRunner {
 
     private final RoleRepository roleRepository;
+    private final UserRepository userRepository;
 
-    public DataSeeder(RoleRepository roleRepository) {
+    public DataSeeder(RoleRepository roleRepository, UserRepository userRepository) {
         this.roleRepository = roleRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
     public void run(String... args) throws Exception {
         seedRoles();
+        seedManager();
     }
 
     private void seedRoles() {
@@ -32,6 +38,18 @@ public class DataSeeder implements CommandLineRunner {
         }
         if (roleRepository.findByName("WAITER").isEmpty()) {
             roleRepository.save(Role.builder().name("WAITER").build());
+        }
+    }
+
+    private void seedManager() {
+        if (userRepository.findByEmail("manager@coffeeshop.com").isEmpty()) {
+            userRepository.save(User.builder().email("manager@coffeeshop.com")
+                    .password(new BCryptPasswordEncoder().encode("Manager123"))
+                    .role(roleRepository.findByName("MANAGER").get())
+                    .mobile("0123456780")
+                    .fullname("Manager")
+                    .build()
+            );
         }
     }
 }

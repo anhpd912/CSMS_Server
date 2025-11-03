@@ -1,9 +1,6 @@
 package com.fu.coffeeshop_management.server.controller;
 
-import com.fu.coffeeshop_management.server.dto.AuthenticationRequest;
-import com.fu.coffeeshop_management.server.dto.AuthenticationResponse;
-import com.fu.coffeeshop_management.server.dto.RegisterRequest;
-import com.fu.coffeeshop_management.server.dto.UserResponse;
+import com.fu.coffeeshop_management.server.dto.*;
 import com.fu.coffeeshop_management.server.entity.User;
 import com.fu.coffeeshop_management.server.service.AuthenticationService;
 import jakarta.validation.Valid;
@@ -30,9 +27,7 @@ public class AuthController {
      * Implements UC-0103 "Create account".
      */
     @PostMapping("/register")
-    public ResponseEntity<AuthenticationResponse> register(
-            @Valid @RequestBody RegisterRequest request
-    ) {
+    public ResponseEntity<AuthenticationResponse> register(@Valid @RequestBody RegisterRequest request) {
         return ResponseEntity.ok(authenticationService.register(request));
     }
 
@@ -41,12 +36,10 @@ public class AuthController {
      * Implements UC-0101 "Login".
      */
     @PostMapping("/login")
-    public ResponseEntity<AuthenticationResponse> login(
-            @Valid @RequestBody AuthenticationRequest request
-    ) {
+    public ResponseEntity<AuthenticationResponse> login(@Valid @RequestBody AuthenticationRequest request) {
         return ResponseEntity.ok(authenticationService.authenticate(request));
     }
-    
+
     /**
      * Handles the /api/auth/me endpoint.
      * This corresponds to the 'me(session)' method in your SDD.
@@ -60,17 +53,21 @@ public class AuthController {
         // Spring Security injects the 'Authentication' object for an authenticated user.
         // We can safely cast the Principal to our User entity.
         User currentUser = (User) authentication.getPrincipal();
-        
-        UserResponse response = UserResponse.builder()
-                .id(currentUser.getId())
-                .email(currentUser.getEmail())
-                .fullname(currentUser.getFullname())
-                .mobile(currentUser.getMobile())
-                .role(currentUser.getRole().getName())
-                .build();
-                
+
+        UserResponse response = UserResponse.builder().id(currentUser.getId()).email(currentUser.getEmail()).fullname(currentUser.getFullname()).mobile(currentUser.getMobile()).role(currentUser.getRole().getName()).build();
+
         return ResponseEntity.ok(response);
     }
-    
+
     // Note: The /logout endpoint is handled by the SecurityConfig filter chain.
+    @PutMapping("/change-password")
+    public ResponseEntity<UserResponse> changePassword(@RequestBody @Valid UpdatePassWordRequest request) {
+        return ResponseEntity.ok(authenticationService.changePassword(request));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestBody @Valid ResetPasswordRequest request) {
+        authenticationService.resetPassword(request.getEmail());
+        return ResponseEntity.ok("Password reset email sent");
+    }
 }

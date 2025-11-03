@@ -1,17 +1,22 @@
 package com.fu.coffeeshop_management.server.service;
 
-import com.fu.coffeeshop_management.server.dto.AuthenticationRequest;
-import com.fu.coffeeshop_management.server.dto.AuthenticationResponse;
-import com.fu.coffeeshop_management.server.dto.RegisterRequest;
+import com.fu.coffeeshop_management.server.dto.*;
 import com.fu.coffeeshop_management.server.entity.Role;
 import com.fu.coffeeshop_management.server.entity.User;
 import com.fu.coffeeshop_management.server.repository.RoleRepository;
 import com.fu.coffeeshop_management.server.repository.UserRepository;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
+import org.springframework.mail.MailException;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 /**
  * Service class implementing the business logic for authentication.
@@ -25,19 +30,22 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final JavaMailSender mailSender;
 
     public AuthenticationService(
             UserRepository userRepository,
             RoleRepository roleRepository,
             PasswordEncoder passwordEncoder,
             JwtService jwtService,
-            AuthenticationManager authenticationManager
+            AuthenticationManager authenticationManager,
+            JavaMailSender mailSender
     ) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.authenticationManager = authenticationManager;
+        this.mailSender = mailSender;
     }
 
     /**
@@ -83,12 +91,17 @@ public class AuthenticationService {
      */
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
         // This will trigger the authentication provider to check the password
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                )
-        );
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()
+                    )
+            );
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid email or password");
+        }
+
 
         // If authentication was successful, find the user and generate a token
         var user = userRepository.findByEmail(request.getEmail())
@@ -99,20 +112,82 @@ public class AuthenticationService {
                 .token(jwtToken)
                 .build();
     }
-    
-    // --- Stubbed Methods from SDD ---
-    
-    // public void changePassword(String username, String oldPwd, String newPwd) {
-    //     // TODO: Implement change password logic
-    //     // 1. Find user by username
-    //     // 2. Check if oldPwd matches
-    //     // 3. Encode and save newPwd
-    // }
 
-    // public void resetPassword(String email) {
-    //     // TODO: Implement reset password logic
-    //     // 1. Find user by email
-    //     // 2. Generate a reset token (and save it with an expiry)
-    //     // 3. Call MailService to send the email
-    // }
+    // --- Stubbed Methods from SDD ---
+
+    public UserResponse changePassword(UpdatePassWordRequest request) {
+
+        var user = userRepository.findByEmail(request.getEmail());
+        if (user.isEmpty()) {
+            throw new IllegalArgumentException("User not found");
+        }
+        if (!passwordEncoder.matches(request.getOldPassword(), user.get().getPassword())) {
+            throw new IllegalArgumentException("Old password does not match");
+        }
+        user.get().setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user.get());
+        return UserResponse.builder()
+                .id(user.get().getId())
+                .email(user.get().getEmail())
+                .fullname(user.get().getFullname())
+                .mobile(user.get().getMobile())
+                .role(user.get().getRole().getName())
+                .build();
+    }
+
+    public void resetPassword(String email) {
+        var userOptional = userRepository.findByEmail(email);
+        if (userOptional.isEmpty()) {
+            throw new IllegalArgumentException("User not found");
+        }
+        User user = userOptional.get();
+        String newPassword = UUID.randomUUID().toString().substring(0, 8);
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "utf-8");
+
+            String htmlMsg = """
+                    <!DOCTYPE html>
+                    <html lang="en">
+                    <head>
+                      <meta charset="UTF-8">
+                      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                      <title>Password Reset</title>
+                      <style>
+                        body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
+                        .container { width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 20px; border-radius: 8px;
+                                     box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+                        .password-box { background-color: #f0f0f0; border: 1px solid #dddddd; padding: 15px; text-align: center;
+                                        font-size: 20px; font-weight: bold; letter-spacing: 2px; border-radius: 4px; margin: 20px 0; }
+                      </style>
+                    </head>
+                    <body>
+                      <div class="container">
+                        <h1>Password Reset</h1>
+                        <p>Hello,</p>
+                        <p>You requested a password reset. Your new temporary password is:</p>
+                        <div class="password-box">{{PASSWORD}}</div>
+                        <p>Please change this password after logging in for security reasons.</p>
+                        <p>If you did not request a password reset, please ignore this email.</p>
+                        <div class="footer"><p>&copy; 2024 Coffeeshop Management. All rights reserved.</p></div>
+                      </div>
+                    </body>
+                    </html>
+                    """;
+
+            htmlMsg = htmlMsg.replace("{{PASSWORD}}", newPassword);
+            helper.setText(htmlMsg, true);
+
+            helper.setTo(email);
+            helper.setSubject("Your New Password");
+            mailSender.send(mimeMessage);
+
+        } catch (MailException | MessagingException e) {
+            // Log the exception or handle it appropriately
+            throw new RuntimeException("Error sending email: " + e.getMessage());
+        }
+    }
 }
