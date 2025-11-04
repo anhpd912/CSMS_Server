@@ -24,7 +24,7 @@ import java.util.UUID;
 public class Loyalty {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id", length = 36, nullable = false, updatable = false)
+    @Column(name = "id", nullable = false, updatable = false)
     private UUID id;
 
     @Column(name = "points_balance", nullable = false)
