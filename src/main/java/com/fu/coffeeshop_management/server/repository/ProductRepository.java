@@ -13,7 +13,6 @@ public interface ProductRepository extends JpaRepository<Product, UUID>{
      * Finds all products belonging to a specific category by its ID.
      */
     List<Product> findByCategoryId(UUID categoryId);
-
     /**
      * Finds all products by category name and status.
      * This is the key method we'll use to fetch the customer menu, e.g.,
