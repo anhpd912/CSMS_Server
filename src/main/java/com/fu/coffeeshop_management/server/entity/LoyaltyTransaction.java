@@ -24,7 +24,7 @@ public class LoyaltyTransaction {
     private Loyalty loyalty;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false)
+    @JoinColumn(name = "order_id", nullable = true)
     private Order order;
 
     @Column(name = "points_earned")
