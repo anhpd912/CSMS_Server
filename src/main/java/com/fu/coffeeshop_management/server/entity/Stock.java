@@ -21,7 +21,7 @@ import java.util.UUID;
 @Table(name = "stock")
 public class Stock {
     @Id
-    @Column(name = "product_id", length = 36, nullable = false, updatable = false)
+    @Column(name = "product_id", nullable = false, updatable = false)
     private UUID productId;
 
     @Column(name = "quantity_in_stock", nullable = false)
