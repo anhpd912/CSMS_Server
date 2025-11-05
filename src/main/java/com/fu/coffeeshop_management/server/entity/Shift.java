@@ -38,12 +38,13 @@ public class Shift {
     @Column(name = "end_time")
     private LocalDateTime endTime;
 
-    @Column(name = "opening_cash", precision = 10, scale = 2)
+    @Column(name = "opening_cash", columnDefinition = "DECIMAL(10,2)")
     private BigDecimal openingCash;
 
-    @Column(name = "closing_cash", precision = 10, scale = 2)
+    @Column(name = "closing_cash", columnDefinition = "DECIMAL(10,2)")
     private BigDecimal closingCash;
 
     @Column(name = "status", nullable = false)
     private String status;
 }
+

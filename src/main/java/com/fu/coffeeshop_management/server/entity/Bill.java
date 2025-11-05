@@ -36,13 +36,13 @@ public class Bill {
     @JoinColumn(name = "payment_id", nullable = false, unique = true)
     private Payment payment;
 
-    @Column(name = "discount", precision = 10, scale = 2)
+    @Column(name = "discount", columnDefinition = "DECIMAL(10,2)")
     private BigDecimal discount;
 
-    @Column(name = "tax", precision = 10, scale = 2)
+    @Column(name = "tax", columnDefinition = "DECIMAL(10,2)")
     private BigDecimal tax;
 
-    @Column(name = "final_amount", nullable = false, precision = 10, scale = 2)
+    @Column(name = "final_amount", nullable = false, columnDefinition = "DECIMAL(10,2)")
     private BigDecimal finalAmount;
 
     @Column(name = "issued_time", nullable = false)
@@ -52,3 +52,4 @@ public class Bill {
     private String paymentStatus;
 
 }
+

@@ -36,6 +36,7 @@ public class PayrollDeduction {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "amount", precision = 10, scale = 2)
+    @Column(name = "amount", columnDefinition = "DECIMAL(10,2)")
     private BigDecimal amount;
 }
+

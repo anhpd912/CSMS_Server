@@ -45,3 +45,4 @@ public class TableInfo {
     @OneToMany(mappedBy = "table")
     private Set<Order> orders;
 }
+

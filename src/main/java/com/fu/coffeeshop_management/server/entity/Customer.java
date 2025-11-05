@@ -29,3 +29,4 @@ public class Customer {
     @JoinColumn(name = "loyalty_id", unique = true)
     private Loyalty loyalty;
 }
+
