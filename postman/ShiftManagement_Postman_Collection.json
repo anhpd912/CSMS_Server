@@ -1,0 +1,438 @@
+{
+    "info": {
+        "name": "Coffee Shop - Shift Management",
+        "description": "Complete API collection for Shift Management feature including Start Shift, End Shift, Cash Tracking, and Shift History View",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "1. Authentication",
+            "item": [
+                {
+                    "name": "Login as Cashier",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.environment.set(\"jwt_token\", jsonData.token);",
+                                    "    console.log(\"Token saved: \" + jsonData.token);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"cashier@coffeeshop.com\",\n  \"password\": \"Password123!\"\n}"
+                        },
+                        "url": {
+                            "raw": "http://localhost:8080/api/auth/login",
+                            "protocol": "http",
+                            "host": ["localhost"],
+                            "port": "8080",
+                            "path": ["api", "auth", "login"]
+                        },
+                        "description": "Login as cashier to get JWT token"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Current User",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{jwt_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "http://localhost:8080/api/auth/me",
+                            "protocol": "http",
+                            "host": ["localhost"],
+                            "port": "8080",
+                            "path": ["api", "auth", "me"]
+                        },
+                        "description": "Get current authenticated user details"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "2. Shift Operations (Cashier)",
+            "item": [
+                {
+                    "name": "Start Shift",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.environment.set(\"current_shift_id\", jsonData.id);",
+                                    "    console.log(\"Shift started with ID: \" + jsonData.id);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{jwt_token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"openingCash\": 1000.00\n}"
+                        },
+                        "url": {
+                            "raw": "http://localhost:8080/api/shifts/start",
+                            "protocol": "http",
+                            "host": ["localhost"],
+                            "port": "8080",
+                            "path": ["api", "shifts", "start"]
+                        },
+                        "description": "Cashier starts their shift by recording opening cash amount"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Current Shift",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{jwt_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "http://localhost:8080/api/shifts/current",
+                            "protocol": "http",
+                            "host": ["localhost"],
+                            "port": "8080",
+                            "path": ["api", "shifts", "current"]
+                        },
+                        "description": "Get the cashier's currently active shift"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "End Shift",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{jwt_token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"closingCash\": 2450.50\n}"
+                        },
+                        "url": {
+                            "raw": "http://localhost:8080/api/shifts/end",
+                            "protocol": "http",
+                            "host": ["localhost"],
+                            "port": "8080",
+                            "path": ["api", "shifts", "end"]
+                        },
+                        "description": "Cashier ends their shift by recording closing cash amount"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "3. Cash Tracking (Cashier & Manager)",
+            "item": [
+                {
+                    "name": "Record Cash Transaction",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{jwt_token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"amount\": 150.00,\n  \"transactionType\": \"CASH_IN\",\n  \"description\": \"Cash sale - Order #123\",\n  \"referenceNumber\": \"ORD-123\"\n}"
+                        },
+                        "url": {
+                            "raw": "http://localhost:8080/api/shifts/cash/record",
+                            "protocol": "http",
+                            "host": ["localhost"],
+                            "port": "8080",
+                            "path": ["api", "shifts", "cash", "record"]
+                        },
+                        "description": "Record a cash transaction during active shift (CASH_IN, CASH_OUT, REFUND)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Current Cash Balance",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{jwt_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "http://localhost:8080/api/shifts/cash/balance",
+                            "protocol": "http",
+                            "host": ["localhost"],
+                            "port": "8080",
+                            "path": ["api", "shifts", "cash", "balance"]
+                        },
+                        "description": "Get current cash balance of active shift"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Cash Transactions for Shift",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{jwt_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "http://localhost:8080/api/shifts/{{current_shift_id}}/cash-transactions",
+                            "protocol": "http",
+                            "host": ["localhost"],
+                            "port": "8080",
+                            "path": [
+                                "api",
+                                "shifts",
+                                "{{current_shift_id}}",
+                                "cash-transactions"
+                            ]
+                        },
+                        "description": "Get all cash transactions for a specific shift"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "4. Shift History (Manager)",
+            "item": [
+                {
+                    "name": "Get All Shifts",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{jwt_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "http://localhost:8080/api/shifts?status=closed&page=0&size=10",
+                            "protocol": "http",
+                            "host": ["localhost"],
+                            "port": "8080",
+                            "path": ["api", "shifts"],
+                            "query": [
+                                {
+                                    "key": "status",
+                                    "value": "closed",
+                                    "description": "Filter by status: open, closed, all"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "10"
+                                },
+                                {
+                                    "key": "userId",
+                                    "value": "uuid-here",
+                                    "disabled": true,
+                                    "description": "Filter by specific user/cashier"
+                                },
+                                {
+                                    "key": "startDate",
+                                    "value": "2025-11-01",
+                                    "disabled": true,
+                                    "description": "Filter from date (YYYY-MM-DD)"
+                                },
+                                {
+                                    "key": "endDate",
+                                    "value": "2025-11-30",
+                                    "disabled": true,
+                                    "description": "Filter to date (YYYY-MM-DD)"
+                                }
+                            ]
+                        },
+                        "description": "Get paginated list of shifts with filters (Manager view)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Shift by ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{jwt_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "http://localhost:8080/api/shifts/{{current_shift_id}}",
+                            "protocol": "http",
+                            "host": ["localhost"],
+                            "port": "8080",
+                            "path": ["api", "shifts", "{{current_shift_id}}"]
+                        },
+                        "description": "Get detailed information about a specific shift"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Shift Summary Report",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{jwt_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "http://localhost:8080/api/shifts/{{current_shift_id}}/summary",
+                            "protocol": "http",
+                            "host": ["localhost"],
+                            "port": "8080",
+                            "path": [
+                                "api",
+                                "shifts",
+                                "{{current_shift_id}}",
+                                "summary"
+                            ]
+                        },
+                        "description": "Get comprehensive summary report for a shift including cash flow, transactions, discrepancies"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get My Shift History",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{jwt_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "http://localhost:8080/api/shifts/my-history?page=0&size=10",
+                            "protocol": "http",
+                            "host": ["localhost"],
+                            "port": "8080",
+                            "path": ["api", "shifts", "my-history"],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "10"
+                                }
+                            ]
+                        },
+                        "description": "Cashier can view their own shift history"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Shifts Statistics",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{jwt_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "http://localhost:8080/api/shifts/statistics?startDate=2025-11-01&endDate=2025-11-30",
+                            "protocol": "http",
+                            "host": ["localhost"],
+                            "port": "8080",
+                            "path": ["api", "shifts", "statistics"],
+                            "query": [
+                                {
+                                    "key": "startDate",
+                                    "value": "2025-11-01"
+                                },
+                                {
+                                    "key": "endDate",
+                                    "value": "2025-11-30"
+                                },
+                                {
+                                    "key": "userId",
+                                    "value": "uuid-here",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "Get aggregated statistics for shifts in a date range (Manager only)"
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ],
+    "variable": [
+        {
+            "key": "jwt_token",
+            "value": ""
+        },
+        {
+            "key": "current_shift_id",
+            "value": ""
+        }
+    ]
+}

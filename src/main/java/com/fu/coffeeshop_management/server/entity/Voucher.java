@@ -26,7 +26,7 @@ public class Voucher {
     @Column(name = "discount_type", nullable = false)
     private String discountType;
 
-    @Column(name = "discount_value", nullable = false, precision = 10, scale = 2)
+    @Column(name = "discount_value", nullable = false, columnDefinition = "DECIMAL(10,2)")
     private BigDecimal discountValue;
 
     @Column(name = "start_date")
@@ -38,3 +38,4 @@ public class Voucher {
     @Column(name = "status", nullable = false)
     private String status;
 }
+

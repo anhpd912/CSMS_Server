@@ -33,7 +33,7 @@ public class Product {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "price", precision = 10, scale = 2, nullable = false)
+    @Column(name = "price", columnDefinition = "DECIMAL(10,2)", nullable = false)
     private BigDecimal price;
 
     @Column(name = "image_link", length = 255) // Renamed from imageUrl to match SDD
@@ -62,3 +62,4 @@ public class Product {
     @OneToOne(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Stock stock;
 }
+

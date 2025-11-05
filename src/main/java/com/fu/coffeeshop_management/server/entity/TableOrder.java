@@ -25,3 +25,4 @@ public class TableOrder {
     @JoinColumn(name = "table_id", nullable = false)
     private TableInfo tableInfo;
 }
+

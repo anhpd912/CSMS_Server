@@ -27,9 +27,10 @@ public class PurchaseOrder {
     @Column(name = "order_date", nullable = false)
     private LocalDateTime orderDate;
 
-    @Column(name = "total_amount", precision = 10, scale = 2)
+    @Column(name = "total_amount", columnDefinition = "DECIMAL(10,2)")
     private BigDecimal totalAmount;
 
     @Column(name = "status", nullable = false)
     private String status;
 }
+

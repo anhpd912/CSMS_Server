@@ -29,7 +29,7 @@ public class BillPayment {
     @Column(name = "payment_method", length = 50, nullable = false)
     private String paymentMethod; // e.g., "Cash", "QR"
 
-    @Column(name = "amount", precision = 10, scale = 2, nullable = false)
+    @Column(name = "amount", columnDefinition = "DECIMAL(10,2)", nullable = false)
     private BigDecimal amount;
 
     @Column(name = "paid_at", nullable = false, updatable = false)
@@ -43,3 +43,4 @@ public class BillPayment {
     @JoinColumn(name = "bill_id", nullable = false)
     private Bill bill;
 }
+

@@ -36,3 +36,4 @@ public class StaffEvaluation {
     @Column(name = "evaluation_date", nullable = false)
     private LocalDateTime evaluationDate;
 }
+

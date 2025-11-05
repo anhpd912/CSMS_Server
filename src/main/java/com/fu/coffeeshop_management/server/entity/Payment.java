@@ -24,7 +24,7 @@ public class Payment {
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
-    @Column(name = "amount", nullable = false, precision = 10, scale = 2)
+    @Column(name = "amount", nullable = false, columnDefinition = "DECIMAL(10,2)")
     private BigDecimal amount;
 
     @Column(name = "method", nullable = false)
@@ -33,3 +33,4 @@ public class Payment {
     @Column(name = "payment_time", nullable = false)
     private LocalDateTime paymentTime;
 }
+

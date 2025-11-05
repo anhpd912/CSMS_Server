@@ -32,3 +32,4 @@ public class Attendance {
     @Column(name = "method", nullable = false)
     private String method;
 }
+

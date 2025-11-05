@@ -37,7 +37,7 @@ public class Order {
     @Builder.Default
     private LocalDateTime updatedAt = LocalDateTime.now();
 
-    @Column(name = "total_price", nullable = false, precision = 10, scale = 2)
+    @Column(name = "total_price", nullable = false, columnDefinition = "DECIMAL(10,2)")
     private Double totalPrice;
 
     // --- Relationships ---
@@ -66,3 +66,4 @@ public class Order {
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
     private Bill bill;
 }
+

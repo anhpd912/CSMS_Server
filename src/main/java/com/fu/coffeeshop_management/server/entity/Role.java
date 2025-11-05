@@ -33,3 +33,4 @@ public class Role {
     @OneToMany(mappedBy = "role")
     private Set<User> users;
 }
+
