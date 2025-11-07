@@ -1,0 +1,600 @@
+{
+    "info": {
+        "_postman_id": "inv-mgmt-001",
+        "name": "Inventory Management API",
+        "description": "Complete REST API collection for Coffee Shop Inventory Management System\n\n**Features:**\n- Add Incoming Stock (Cashier/Manager)\n- Add New Ingredient (Manager)\n- Update Ingredient (Manager)\n- Delete Ingredient (Manager)\n- List Ingredients (All authenticated users)\n- Low Stock Notifications (Manager)\n\n**Base URL:** http://localhost:8080/api\n\n**Authentication:** JWT Bearer Token required for all endpoints except login/register",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{auth_token}}",
+                "type": "string"
+            }
+        ]
+    },
+    "item": [
+        {
+            "name": "Authentication",
+            "item": [
+                {
+                    "name": "Register User",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"username\": \"manager1\",\n  \"email\": \"manager@coffeeshop.com\",\n  \"password\": \"Manager@123\",\n  \"fullName\": \"Inventory Manager\",\n  \"phoneNumber\": \"+1234567890\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/register",
+                            "host": ["{{base_url}}"],
+                            "path": ["auth", "register"]
+                        },
+                        "description": "Register a new user account"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Login - Manager",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.environment.set(\"auth_token\", jsonData.accessToken);",
+                                    "    console.log(\"Token saved: \" + jsonData.accessToken);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"username\": \"manager1\",\n  \"password\": \"Manager@123\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/login",
+                            "host": ["{{base_url}}"],
+                            "path": ["auth", "login"]
+                        },
+                        "description": "Login as Manager to get JWT token"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Login - Cashier",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.environment.set(\"auth_token\", jsonData.accessToken);",
+                                    "    console.log(\"Token saved: \" + jsonData.accessToken);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"username\": \"cashier1\",\n  \"password\": \"Cashier@123\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/login",
+                            "host": ["{{base_url}}"],
+                            "path": ["auth", "login"]
+                        },
+                        "description": "Login as Cashier to get JWT token"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Ingredient Management",
+            "item": [
+                {
+                    "name": "Add New Ingredient",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Arabica Coffee Beans\",\n  \"description\": \"Premium quality Arabica coffee beans from Colombia\",\n  \"price\": 25.50,\n  \"reorderLevel\": 50,\n  \"imageLink\": \"https://example.com/images/arabica-beans.jpg\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/inventory/ingredients",
+                            "host": ["{{base_url}}"],
+                            "path": ["inventory", "ingredients"]
+                        },
+                        "description": "Add a new ingredient (product with category 'Ingredient'). Manager only."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Ingredient",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Arabica Coffee Beans - Premium\",\n  \"description\": \"Premium quality Arabica coffee beans from Colombia - Fair Trade\",\n  \"price\": 28.00,\n  \"reorderLevel\": 60,\n  \"imageLink\": \"https://example.com/images/arabica-beans-premium.jpg\",\n  \"status\": \"active\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/inventory/ingredients/{{ingredient_id}}",
+                            "host": ["{{base_url}}"],
+                            "path": [
+                                "inventory",
+                                "ingredients",
+                                "{{ingredient_id}}"
+                            ]
+                        },
+                        "description": "Update an existing ingredient. Manager only."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete Ingredient",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/inventory/ingredients/{{ingredient_id}}",
+                            "host": ["{{base_url}}"],
+                            "path": [
+                                "inventory",
+                                "ingredients",
+                                "{{ingredient_id}}"
+                            ]
+                        },
+                        "description": "Soft delete an ingredient (set status to 'inactive'). Manager only."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Ingredient by ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/inventory/ingredients/{{ingredient_id}}",
+                            "host": ["{{base_url}}"],
+                            "path": [
+                                "inventory",
+                                "ingredients",
+                                "{{ingredient_id}}"
+                            ]
+                        },
+                        "description": "Retrieve a single ingredient by its ID"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "List All Ingredients",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/inventory/ingredients",
+                            "host": ["{{base_url}}"],
+                            "path": ["inventory", "ingredients"]
+                        },
+                        "description": "Get list of all active ingredients"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Search Ingredients by Name",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/inventory/ingredients/search?name=coffee",
+                            "host": ["{{base_url}}"],
+                            "path": ["inventory", "ingredients", "search"],
+                            "query": [
+                                {
+                                    "key": "name",
+                                    "value": "coffee"
+                                }
+                            ]
+                        },
+                        "description": "Search ingredients by name (case-insensitive partial match)"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Stock Management",
+            "item": [
+                {
+                    "name": "Add Incoming Stock",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200 || pm.response.code === 201) {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.environment.set(\"transaction_id\", jsonData.id);",
+                                    "    console.log(\"Transaction ID saved: \" + jsonData.id);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"productId\": \"{{ingredient_id}}\",\n  \"quantity\": 100,\n  \"transactionType\": \"INCOMING\",\n  \"notes\": \"Restocking from supplier ABC\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/inventory/stock/incoming",
+                            "host": ["{{base_url}}"],
+                            "path": ["inventory", "stock", "incoming"]
+                        },
+                        "description": "Record incoming stock transaction. Cashier and Manager can perform this action."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Stock Level",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/inventory/stock/{{ingredient_id}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["inventory", "stock", "{{ingredient_id}}"]
+                        },
+                        "description": "Get current stock level for a specific ingredient"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Transaction History",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/inventory/transactions/{{ingredient_id}}",
+                            "host": ["{{base_url}}"],
+                            "path": [
+                                "inventory",
+                                "transactions",
+                                "{{ingredient_id}}"
+                            ]
+                        },
+                        "description": "Get all inventory transactions for a specific ingredient"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Low Stock Notifications",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/inventory/low-stock",
+                            "host": ["{{base_url}}"],
+                            "path": ["inventory", "low-stock"]
+                        },
+                        "description": "Get list of ingredients with stock levels at or below reorder level. Manager only."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Complete Workflow Tests",
+            "item": [
+                {
+                    "name": "WORKFLOW: Add Ingredient + Stock",
+                    "item": [
+                        {
+                            "name": "Step 1: Login as Manager",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "pm.test(\"Login successful\", function () {",
+                                            "    pm.response.to.have.status(200);",
+                                            "    var jsonData = pm.response.json();",
+                                            "    pm.environment.set(\"auth_token\", jsonData.accessToken);",
+                                            "});"
+                                        ],
+                                        "type": "text/javascript"
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "auth": {
+                                    "type": "noauth"
+                                },
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"username\": \"manager1\",\n  \"password\": \"Manager@123\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/auth/login",
+                                    "host": ["{{base_url}}"],
+                                    "path": ["auth", "login"]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Step 2: Add New Ingredient",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "pm.test(\"Ingredient created\", function () {",
+                                            "    pm.response.to.have.status(201);",
+                                            "    var jsonData = pm.response.json();",
+                                            "    pm.environment.set(\"ingredient_id\", jsonData.id);",
+                                            "    pm.environment.set(\"ingredient_name\", jsonData.name);",
+                                            "});"
+                                        ],
+                                        "type": "text/javascript"
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"name\": \"Whole Milk\",\n  \"description\": \"Fresh whole milk for beverages\",\n  \"price\": 5.50,\n  \"reorderLevel\": 30,\n  \"imageLink\": \"https://example.com/images/milk.jpg\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/inventory/ingredients",
+                                    "host": ["{{base_url}}"],
+                                    "path": ["inventory", "ingredients"]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Step 3: Add Stock",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "pm.test(\"Stock added successfully\", function () {",
+                                            "    pm.response.to.have.status(200);",
+                                            "    var jsonData = pm.response.json();",
+                                            "    pm.expect(jsonData.quantity).to.eql(100);",
+                                            "});"
+                                        ],
+                                        "type": "text/javascript"
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"productId\": \"{{ingredient_id}}\",\n  \"quantity\": 100,\n  \"transactionType\": \"INCOMING\",\n  \"notes\": \"Initial stock\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/inventory/stock/incoming",
+                                    "host": ["{{base_url}}"],
+                                    "path": ["inventory", "stock", "incoming"]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Step 4: Verify Stock Level",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "pm.test(\"Stock level correct\", function () {",
+                                            "    pm.response.to.have.status(200);",
+                                            "    var jsonData = pm.response.json();",
+                                            "    pm.expect(jsonData.quantityInStock).to.eql(100);",
+                                            "});"
+                                        ],
+                                        "type": "text/javascript"
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/inventory/stock/{{ingredient_id}}",
+                                    "host": ["{{base_url}}"],
+                                    "path": [
+                                        "inventory",
+                                        "stock",
+                                        "{{ingredient_id}}"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Error Scenarios",
+            "item": [
+                {
+                    "name": "Add Ingredient - Unauthorized (No Token)",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Test Ingredient\",\n  \"description\": \"Should fail\",\n  \"price\": 10.00,\n  \"reorderLevel\": 20\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/inventory/ingredients",
+                            "host": ["{{base_url}}"],
+                            "path": ["inventory", "ingredients"]
+                        },
+                        "description": "Should return 401 Unauthorized"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Add Stock - Invalid Product ID",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"productId\": \"00000000-0000-0000-0000-000000000000\",\n  \"quantity\": 100,\n  \"transactionType\": \"INCOMING\",\n  \"notes\": \"Should fail\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/inventory/stock/incoming",
+                            "host": ["{{base_url}}"],
+                            "path": ["inventory", "stock", "incoming"]
+                        },
+                        "description": "Should return 404 Not Found"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Add Ingredient - Missing Required Fields",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"description\": \"Missing name and price\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/inventory/ingredients",
+                            "host": ["{{base_url}}"],
+                            "path": ["inventory", "ingredients"]
+                        },
+                        "description": "Should return 400 Bad Request with validation errors"
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ],
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:8080/api",
+            "type": "string"
+        },
+        {
+            "key": "auth_token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "ingredient_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "transaction_id",
+            "value": "",
+            "type": "string"
+        }
+    ]
+}

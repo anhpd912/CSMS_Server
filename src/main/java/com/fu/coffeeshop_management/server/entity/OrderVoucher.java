@@ -27,6 +27,7 @@ public class OrderVoucher {
     @JoinColumn(name = "voucher_id", nullable = false)
     private Voucher voucher;
 
-    @Column(name = "discount_value", nullable = false, precision = 10, scale = 2)
+    @Column(name = "discount_value", nullable = false, columnDefinition = "DECIMAL(10,2)")
     private BigDecimal discountValue;
 }
+

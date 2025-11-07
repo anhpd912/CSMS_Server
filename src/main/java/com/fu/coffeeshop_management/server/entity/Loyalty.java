@@ -41,3 +41,4 @@ public class Loyalty {
     @OneToOne(mappedBy = "loyalty")
     private User user;
 }
+

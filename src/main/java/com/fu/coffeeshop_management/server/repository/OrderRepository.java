@@ -24,5 +24,5 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
     /**
      * Finds all orders created by a specific staff member.
      */
-    List<Order> findByUserId(UUID userId);
+    List<Order> findByStaffId(UUID staffId);
 }

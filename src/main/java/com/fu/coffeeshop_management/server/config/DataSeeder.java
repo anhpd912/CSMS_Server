@@ -81,7 +81,13 @@ public class DataSeeder implements CommandLineRunner {
         if (categoryRepository.findByName("JUICE").isEmpty()) {
             categoryRepository.save(Category.builder()
                     .description("Juice drinks")
-                    .name("Juice")
+                    .name("JUICE")
+                    .build());
+        }
+        if (categoryRepository.findByName("FAST FOOD").isEmpty()) {
+            categoryRepository.save(Category.builder()
+                    .description("Fast food")
+                    .name("FAST FOOD")
                     .build());
         }
     }

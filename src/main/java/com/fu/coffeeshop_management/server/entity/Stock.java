@@ -40,3 +40,4 @@ public class Stock {
     private Product product;
 }
 
+

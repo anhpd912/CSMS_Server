@@ -30,6 +30,7 @@ public class PurchaseOrderDetail {
     @Column(name = "quantity", nullable = false)
     private int quantity;
 
-    @Column(name = "cost_price", precision = 10, scale = 2)
+    @Column(name = "cost_price", columnDefinition = "DECIMAL(10,2)")
     private BigDecimal costPrice;
 }
+
