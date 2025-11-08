@@ -2,7 +2,6 @@ package com.fu.coffeeshop_management.server.controller;
 
 import com.fu.coffeeshop_management.server.dto.CreateVoucherRequest;
 import com.fu.coffeeshop_management.server.dto.UpdateVoucherRequest;
-import com.fu.coffeeshop_management.server.dto.VoucherListItem;
 import com.fu.coffeeshop_management.server.dto.VoucherResponse;
 import com.fu.coffeeshop_management.server.entity.Voucher;
 import com.fu.coffeeshop_management.server.service.VoucherService;
@@ -44,12 +43,17 @@ public class VoucherController {
     }
 
     @GetMapping
-    public List<VoucherListItem> list(
+    public List<VoucherResponse> list(
             @RequestParam(required = false) Voucher.VoucherType type,
             @RequestParam(required = false) Voucher.VoucherStatus status,
             @RequestParam(required = false) String code,
             @RequestParam(required = false, defaultValue = "startDate") String sortBy
     ) {
         return service.list(code, status, type, sortBy);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<VoucherResponse> getById(@PathVariable UUID id) {
+        return ResponseEntity.ok(service.getById(id));
     }
 }

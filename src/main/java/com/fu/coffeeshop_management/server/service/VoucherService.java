@@ -2,7 +2,6 @@ package com.fu.coffeeshop_management.server.service;
 
 import com.fu.coffeeshop_management.server.dto.CreateVoucherRequest;
 import com.fu.coffeeshop_management.server.dto.UpdateVoucherRequest;
-import com.fu.coffeeshop_management.server.dto.VoucherListItem;
 import com.fu.coffeeshop_management.server.dto.VoucherResponse;
 import com.fu.coffeeshop_management.server.entity.Voucher;
 import com.fu.coffeeshop_management.server.exception.BadRequestException;
@@ -74,20 +73,19 @@ public class VoucherService {
         return res;
     }
 
-    public List<VoucherListItem> list(String codeLike, Voucher.VoucherStatus status,
-                                      Voucher.VoucherType type, String sortBy) {
-        // sortBy chỉ chấp nhận startDate|endDate, mặc định startDate
-        String sortField = "startDate";
-        if ("endDate".equalsIgnoreCase(sortBy)) sortField = "endDate";
-        Sort sort = Sort.by(Sort.Direction.ASC, sortField); // tăng dần
+    public List<VoucherResponse> list(String codeLike,
+                                      Voucher.VoucherStatus status,
+                                      Voucher.VoucherType type,
+                                      String sortBy) {
+        String sortField = "endDate".equalsIgnoreCase(sortBy) ? "endDate" : "startDate";
+        Sort sort = Sort.by(Sort.Direction.ASC, sortField);
 
         return repo.findAll(VoucherSpecs.filter(codeLike, status, type), sort)
                 .stream()
-                .map(v -> new VoucherListItem(
-                        v.getId(), v.getCode(), v.getDiscountType(), v.getDiscountValue(),
-                        v.getStartDate(), v.getEndDate(), v.getStatus()))
+                .map(this::toResponse)   // dùng mapper đã có
                 .toList();
     }
+
 
     @Transactional
     public VoucherResponse patch(UUID id, UpdateVoucherRequest req, String actor) {
@@ -144,4 +142,21 @@ public class VoucherService {
         return res;
     }
 
+    public VoucherResponse getById(UUID id) {
+        Voucher v = repo.findById(id)
+                .orElseThrow(() -> new NotFoundException("Voucher không tồn tại: " + id));
+        return toResponse(v);
+    }
+
+    private VoucherResponse toResponse(Voucher v) {
+        VoucherResponse res = new VoucherResponse();
+        res.setId(v.getId());
+        res.setCode(v.getCode());
+        res.setType(v.getDiscountType());
+        res.setValue(v.getDiscountValue());
+        res.setStartDate(v.getStartDate());
+        res.setEndDate(v.getEndDate());
+        res.setStatus(v.getStatus());
+        return res;
+    }
 }
