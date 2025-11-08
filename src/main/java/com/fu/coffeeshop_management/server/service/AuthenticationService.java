@@ -109,6 +109,9 @@ public class AuthenticationService {
 
         var jwtToken = jwtService.generateToken(user);
         return AuthenticationResponse.builder()
+                .isSuccess(true)
+                .errorCode("200")
+                .message("Login successful")
                 .token(jwtToken)
                 .build();
     }

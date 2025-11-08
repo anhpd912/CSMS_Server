@@ -5,17 +5,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * DTO for returning a successful authentication response.
- * Based on the SDD 'AuthenticationResponse' class.
- */
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class AuthenticationResponse {
+public class APIResponse<T> {
     private Boolean isSuccess;
-    private String  message;
-    private String  errorCode;
-    private String token;
+    private String message;
+    private T data;
 }
