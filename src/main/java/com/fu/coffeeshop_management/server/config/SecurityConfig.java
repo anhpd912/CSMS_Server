@@ -35,7 +35,7 @@ public class SecurityConfig {
         http
                 // Disable CSRF (Cross-Site Request Forgery) since we are using stateless JWT
                 .csrf(AbstractHttpConfigurer::disable)
-
+                .cors(AbstractHttpConfigurer::disable)
                 // Define URL-based authorization rules
                 .authorizeHttpRequests(auth -> auth
                         // Allow all requests to the /api/auth/** endpoints (login, register)
