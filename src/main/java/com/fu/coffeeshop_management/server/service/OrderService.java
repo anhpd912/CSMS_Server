@@ -17,10 +17,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,30 +26,25 @@ public class OrderService {
     @Autowired private OrderRepository orderRepository;
     @Autowired private TableInfoRepository tableInfoRepository;
     @Autowired private ProductRepository productRepository;
-    @Autowired private UserRepository userRepository; // Inject UserRepository
+    @Autowired private UserRepository userRepository;
+    @Autowired private OrderDetailRepository orderDetailRepository;
+    @Autowired private TableOrderRepository tableOrderRepository;
 
     @Transactional
-    public void createOrderFromDTO(OrderRequestDTO request, UUID userId) { // Thay đổi tham số thành String userId
+    public void createOrderFromDTO(OrderRequestDTO request, UUID userId) {
 
-        // Tải lại đối tượng User từ database để đảm bảo nó được quản lý bởi phiên hiện tại
         User staff = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với ID: " + userId));
 
-        // 1. Tạo đối tượng Order ngay từ đầu
         Order newOrder = new Order();
-        newOrder.setCreatedAt(LocalDateTime.now());
-        log.info("Order created at: {}", newOrder.getCreatedAt());
         newOrder.setStatus("SERVING");
-
-        newOrder.setStaff(staff); // Sử dụng đối tượng User đã tải lại
-        log.info("id: {}", staff.getId());
-
+        newOrder.setNote(request.getNote());
+        newOrder.setStaff(staff);
         newOrder.setOrderDetails(new HashSet<>());
         newOrder.setTableOrders(new HashSet<>());
 
         BigDecimal totalAmount = BigDecimal.ZERO;
 
-        // 2. Xử lý các món trong đơn hàng (Order Details)
         for (OrderItemRequestDTO itemDto : request.getItems()) {
             Product product = productRepository.findById(UUID.fromString(itemDto.getProductId()))
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm: " + itemDto.getProductId()));
@@ -67,35 +59,124 @@ public class OrderService {
             detail.setPrice(product.getPrice());
             detail.setOrder(newOrder);
 
-
             newOrder.getOrderDetails().add(detail);
-
-            log.info("total: {}", totalAmount);
         }
 
-        newOrder.setTotalPrice(totalAmount.doubleValue()); // Gán tổng tiền đã tính
+        newOrder.setTotalPrice(totalAmount.doubleValue());
 
-        // 3. Xử lý các bàn được chọn (Table Orders)
         for (String tableId : request.getTableIds()) {
             TableInfo table = tableInfoRepository.findById(UUID.fromString(tableId))
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy bàn: " + tableId));
 
-            table.setStatus("SERVING"); // Cập nhật trạng thái bàn
-
-            // --- SỬA 2: THÊM DÒNG NÀY ---
-            // Lưu Bàn (TableInfo) ngay lập tức để nó không còn "bẩn"
-            // Điều này ngăn xung đột (conflict) với việc lưu Order ở cuối
+            table.setStatus("SERVING");
             tableInfoRepository.save(table);
-            // ---------------------------------
 
             TableOrder tableOrderLink = new TableOrder();
             tableOrderLink.setOrder(newOrder);
             tableOrderLink.setTableInfo(table);
 
-            newOrder.getTableOrders().add(tableOrderLink); // Thêm vào danh sách của Order
+            newOrder.getTableOrders().add(tableOrderLink);
         }
 
         orderRepository.save(newOrder);
+    }
+
+    @Transactional
+    public OrderResponseDTO updateOrder(String orderId, OrderRequestDTO request, UUID userId) {
+        UUID orderUUID = UUID.fromString(orderId);
+
+        // 1. Tìm đơn hàng hiện có
+        Order orderToUpdate = orderRepository.findById(orderUUID)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng với ID: " + orderId));
+
+        // 2. Cập nhật các trường đơn giản
+        orderToUpdate.setNote(request.getNote());
+        User staff = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với ID: " + userId));
+        orderToUpdate.setStaff(staff);
+
+        // 3. Xử lý OrderDetails - THE CORRECT WAY
+        updateOrderDetails(orderToUpdate, request.getItems());
+
+        // 4. Xử lý TableOrders - THE CORRECT WAY
+        updateTableOrders(orderToUpdate, request.getTableIds());
+
+        // 5. Lưu đơn hàng đã cập nhật (JPA sẽ tự động xử lý các collection đã được thay thế)
+        Order savedOrder = orderRepository.save(orderToUpdate);
+
+        // 6. Trả về DTO
+        return convertToDto(savedOrder);
+    }
+
+    private void updateOrderDetails(Order order, List<OrderItemRequestDTO> itemRequests) {
+        // 1. Xóa các chi tiết cũ một cách rõ ràng
+        orderDetailRepository.deleteAllInBatch(order.getOrderDetails());
+
+        // 2. Tạo một collection HOÀN TOÀN MỚI
+        Set<OrderDetail> newDetails = new HashSet<>();
+        BigDecimal newTotalAmount = BigDecimal.ZERO;
+
+        // 3. Đổ dữ liệu vào collection MỚI
+        for (OrderItemRequestDTO itemDto : itemRequests) {
+            Product product = productRepository.findById(UUID.fromString(itemDto.getProductId()))
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm: " + itemDto.getProductId()));
+
+            OrderDetail newDetail = new OrderDetail();
+            newDetail.setProduct(product);
+            newDetail.setQuantity(itemDto.getQuantity());
+            newDetail.setPrice(product.getPrice());
+            newDetail.setOrder(order); // Liên kết ngược lại
+
+            newDetails.add(newDetail); // Thêm vào collection MỚI
+
+            // Tính toán tổng tiền
+            BigDecimal itemQuantity = new BigDecimal(itemDto.getQuantity());
+            BigDecimal itemTotal = product.getPrice().multiply(itemQuantity);
+            newTotalAmount = newTotalAmount.add(itemTotal);
+        }
+
+        // 4. THAY THẾ collection cũ bằng collection mới và cập nhật tổng tiền
+        order.setOrderDetails(newDetails);
+        order.setTotalPrice(newTotalAmount.doubleValue());
+    }
+
+    private void updateTableOrders(Order order, List<String> newTableIds) {
+        // 1. Giải phóng các bàn cũ
+        for (TableOrder oldTableOrder : order.getTableOrders()) {
+            TableInfo table = oldTableOrder.getTableInfo();
+            table.setStatus("AVAILABLE");
+            tableInfoRepository.save(table);
+        }
+        // 2. Xóa các liên kết cũ một cách rõ ràng
+        tableOrderRepository.deleteAllInBatch(order.getTableOrders());
+
+        // 3. Tạo một collection HOÀN TOÀN MỚI
+        Set<TableOrder> newTableOrders = new HashSet<>();
+
+        // 4. Đổ dữ liệu vào collection MỚI
+        for (String tableIdStr : newTableIds) {
+            UUID tableId = UUID.fromString(tableIdStr);
+            TableInfo table = tableInfoRepository.findById(tableId)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy bàn: " + tableId));
+
+            table.setStatus("SERVING");
+            tableInfoRepository.save(table);
+
+            TableOrder newTableOrder = new TableOrder();
+            newTableOrder.setOrder(order);
+            newTableOrder.setTableInfo(table);
+            newTableOrders.add(newTableOrder); // Thêm vào collection MỚI
+        }
+
+        // 5. THAY THẾ collection cũ bằng collection mới
+        order.setTableOrders(newTableOrders);
+    }
+
+    public OrderResponseDTO getOrderById(String orderId) {
+        UUID orderUUID = UUID.fromString(orderId);
+        Order order = orderRepository.findById(orderUUID)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng với ID: " + orderId));
+        return convertToDto(order);
     }
 
     public List<OrderResponseDTO> getOrders(Instant fromDate, Instant toDate, String status, String tableId, String staffId) {
@@ -115,12 +196,10 @@ public class OrderService {
                 predicates.add(cb.equal(root.get("staff").get("id"), UUID.fromString(staffId)));
             }
             if (tableId != null && !tableId.isBlank()) {
-                // Join Order -> TableOrder -> TableInfo để lọc theo tableId
                 predicates.add(cb.equal(root.join("tableOrders").get("tableInfo").get("id"), UUID.fromString(tableId)));
-                query.distinct(true); // Đảm bảo không có đơn hàng trùng lặp nếu một đơn hàng có nhiều bàn
+                query.distinct(true);
             }
 
-            // Sắp xếp mặc định: đơn hàng mới nhất lên đầu
             query.orderBy(cb.desc(root.get("createdAt")));
 
             return cb.and(predicates.toArray(new Predicate[0]));
@@ -139,6 +218,7 @@ public class OrderService {
                 .totalAmount(order.getTotalPrice())
                 .status(order.getStatus())
                 .staffName(order.getStaff() != null ? order.getStaff().getUsername() : "N/A")
+                .note(order.getNote())
                 .tableNames(order.getTableOrders().stream()
                         .map(tableOrder -> tableOrder.getTableInfo().getName())
                         .collect(Collectors.toList()))

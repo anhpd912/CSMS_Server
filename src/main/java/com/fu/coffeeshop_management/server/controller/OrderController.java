@@ -14,9 +14,10 @@ import org.springframework.web.bind.annotation.*;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/orders")
+@RequestMapping("/api/orders") // Sửa thành /api/v1/orders cho nhất quán
 @Slf4j
 public class OrderController {
 
@@ -52,6 +53,35 @@ public class OrderController {
             return ResponseEntity.badRequest().body(errorResponse);
         }
     }
+
+    @PutMapping("/{id}")
+    // Sửa Long id thành String id
+    public ResponseEntity<?> updateOrder(@PathVariable String id, @RequestBody OrderRequestDTO orderRequest, @AuthenticationPrincipal User currentUser) {
+        try {
+            OrderResponseDTO updatedOrder = orderService.updateOrder(id, orderRequest, currentUser.getId());
+            return ResponseEntity.ok(updatedOrder);
+        } catch (Exception e) {
+            String errorMessage = e.getMessage();
+            if (errorMessage == null || errorMessage.isEmpty()) {
+                errorMessage = "Đã xảy ra lỗi không xác định trong quá trình cập nhật đơn hàng. Loại lỗi: " + e.getClass().getSimpleName();
+            } else {
+                errorMessage = "Lỗi cập nhật đơn hàng: " + errorMessage;
+            }
+            Map<String, Object> errorResponse = Map.of(
+                "isSuccess", false,
+                "message", errorMessage
+            );
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+
+    @GetMapping("/{id}")
+    // Thêm chức năng lấy chi tiết đơn hàng
+    public ResponseEntity<OrderResponseDTO> getOrderById(@PathVariable String id) {
+        OrderResponseDTO order = orderService.getOrderById(id);
+        return ResponseEntity.ok(order);
+    }
+
 
     @GetMapping
     public ResponseEntity<List<OrderResponseDTO>> getOrders(

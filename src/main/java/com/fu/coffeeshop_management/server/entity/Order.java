@@ -44,6 +44,9 @@ public class Order {
     @Column(name = "total_price", nullable = false, columnDefinition = "DECIMAL(10,2)")
     private Double totalPrice;
 
+    @Column(name = "note", columnDefinition = "TEXT")
+    private String note;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
     private Set<TableOrder> tableOrders = new HashSet<>();
