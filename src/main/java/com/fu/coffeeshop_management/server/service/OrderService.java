@@ -101,9 +101,6 @@ public class OrderService {
         // 3. Xử lý OrderDetails - THE CORRECT WAY
         updateOrderDetails(orderToUpdate, request.getItems());
 
-        // 4. Xử lý TableOrders - THE CORRECT WAY
-        updateTableOrders(orderToUpdate, request.getTableIds());
-
         // 5. Lưu đơn hàng đã cập nhật (JPA sẽ tự động xử lý các collection đã được thay thế)
         Order savedOrder = orderRepository.save(orderToUpdate);
 
@@ -141,38 +138,6 @@ public class OrderService {
         // 4. THAY THẾ collection cũ bằng collection mới và cập nhật tổng tiền
         order.setOrderDetails(newDetails);
         order.setTotalPrice(newTotalAmount.doubleValue());
-    }
-
-    private void updateTableOrders(Order order, List<String> newTableIds) {
-        // 1. Giải phóng các bàn cũ
-        for (TableOrder oldTableOrder : order.getTableOrders()) {
-            TableInfo table = oldTableOrder.getTableInfo();
-            table.setStatus("AVAILABLE");
-            tableInfoRepository.save(table);
-        }
-        // 2. Xóa các liên kết cũ một cách rõ ràng
-        tableOrderRepository.deleteAllInBatch(order.getTableOrders());
-
-        // 3. Tạo một collection HOÀN TOÀN MỚI
-        Set<TableOrder> newTableOrders = new HashSet<>();
-
-        // 4. Đổ dữ liệu vào collection MỚI
-        for (String tableIdStr : newTableIds) {
-            UUID tableId = UUID.fromString(tableIdStr);
-            TableInfo table = tableInfoRepository.findById(tableId)
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy bàn: " + tableId));
-
-            table.setStatus("SERVING");
-            tableInfoRepository.save(table);
-
-            TableOrder newTableOrder = new TableOrder();
-            newTableOrder.setOrder(order);
-            newTableOrder.setTableInfo(table);
-            newTableOrders.add(newTableOrder); // Thêm vào collection MỚI
-        }
-
-        // 5. THAY THẾ collection cũ bằng collection mới
-        order.setTableOrders(newTableOrders);
     }
 
     public OrderResponseDTO getOrderById(String orderId) {

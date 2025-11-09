@@ -15,6 +15,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
+@Service
 @Slf4j
 public class TableInfoService {
     private final TableInfoRepository tableRepo;
@@ -425,6 +426,16 @@ public class TableInfoService {
         return STATUS_AVAILABLE.equals(status) ||
                STATUS_OCCUPIED.equals(status) ||
                STATUS_RESERVED.equals(status);
+    }
+
+    private TableInfoDTO mapToTableInfoDTO(TableInfo table) {
+        return TableInfoDTO.builder()
+                .id(table.getId())
+                .name(table.getName())
+                .location(table.getLocation())
+                .seatCount(table.getSeatCount())
+                .status(table.getStatus())
+                .build();
     }
 
     // ============= Mapping Helper Methods =============

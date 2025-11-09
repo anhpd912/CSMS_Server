@@ -16,7 +16,7 @@ public class TableInfoDTO {
     private String name;
     private String status;
     private String location;
-    private int seat_count;
+    private int seatCount;
     //private List<SimpleOrderDTO> orders;
 
     // Constructor mới được thêm vào

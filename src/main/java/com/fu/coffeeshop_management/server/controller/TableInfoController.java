@@ -5,7 +5,6 @@ import com.fu.coffeeshop_management.server.entity.User;
 import com.fu.coffeeshop_management.server.exception.ResourceNotFoundException;
 import com.fu.coffeeshop_management.server.exception.UnauthorizedException;
 import com.fu.coffeeshop_management.server.service.TableInfoService;
-import com.fu.coffeeshop_management.server.service.TableService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

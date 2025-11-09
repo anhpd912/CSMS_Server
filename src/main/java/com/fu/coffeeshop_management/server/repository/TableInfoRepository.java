@@ -114,10 +114,4 @@ public interface TableInfoRepository extends JpaRepository<TableInfo, UUID> {
     @Query("SELECT AVG(t.seatCount) FROM TableInfo t")
     Double getAverageSeatCount();
 
-    List<TableInfo> findByStatusIgnoreCase(String status);
-
-    List<TableInfo> findByNameContainingIgnoreCase(String name);
-
-    List<TableInfo> findByStatusIgnoreCaseAndNameContainingIgnoreCase(String status, String name);
-
 }
