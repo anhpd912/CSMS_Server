@@ -1,10 +1,12 @@
 package com.fu.coffeeshop_management.server.service;
 
+import com.fu.coffeeshop_management.server.dto.TableInfoDTO; // Import TableInfoDTO
 import com.fu.coffeeshop_management.server.entity.TableInfo;
 import com.fu.coffeeshop_management.server.repository.TableInfoRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors; // Import Collectors
 
 @Service
 public class TableInfoService {
@@ -14,22 +16,38 @@ public class TableInfoService {
         this.tableRepo = tableRepo;
     }
 
-    public List<TableInfo> listTables(String status, String keyword) {
+    // Helper method to convert TableInfo entity to TableInfoDTO
+    private TableInfoDTO convertToDTO(TableInfo tableInfo) {
+        return TableInfoDTO.builder()
+                .id(tableInfo.getId())
+                .name(tableInfo.getName())
+                .location(tableInfo.getLocation())
+                .status(tableInfo.getStatus())
+                .seat_count(tableInfo.getSeat_count())
+                .build();
+    }
 
+    public List<TableInfoDTO> listTables(String status, String keyword) {
+
+        List<TableInfo> tableInfos;
         boolean hasStatus = (status != null && !status.isBlank());
         boolean hasKeyword = (keyword != null && !keyword.isBlank());
 
         if (hasStatus && hasKeyword) {
-            return tableRepo.findByStatusIgnoreCaseAndNameContainingIgnoreCase(status, keyword);
+            tableInfos = tableRepo.findByStatusIgnoreCaseAndNameContainingIgnoreCase(status, keyword);
         }
         else if (hasStatus) {
-            return tableRepo.findByStatusIgnoreCase(status);
+            tableInfos = tableRepo.findByStatusIgnoreCase(status);
         }
         else if (hasKeyword) {
-            return tableRepo.findByNameContainingIgnoreCase(keyword);
+            tableInfos = tableRepo.findByNameContainingIgnoreCase(keyword);
         }
         else {
-            return tableRepo.findAll();
+            tableInfos = tableRepo.findAll();
         }
+
+        return tableInfos.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 }
