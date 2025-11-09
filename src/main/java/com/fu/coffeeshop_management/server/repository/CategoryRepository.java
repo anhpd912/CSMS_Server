@@ -4,11 +4,12 @@ import com.fu.coffeeshop_management.server.entity.Category;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface CategoryRepository extends JpaRepository<Category,UUID>{
+public interface CategoryRepository extends JpaRepository<Category, UUID> {
     /**
      * Finds a category by its name. Useful for ensuring no duplicate categories.
      */

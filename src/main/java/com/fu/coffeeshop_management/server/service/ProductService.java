@@ -34,14 +34,14 @@ public class ProductService {
      * @param status       The status of the products to filter by (optional).
      * @return A list of {@link ProductResponse} objects matching the filters.
      */
-    public List<ProductResponse> getAllWithFilters(String categoryName, String status) {
+    public List<ProductResponse> getAllWithFilters(String categoryName, String keyword) {
         List<Product> products;
-        if (categoryName != null && status != null) {
-            products = productRepository.findByCategoryNameAndStatus(categoryName, status);
+        if (categoryName != null && keyword != null) {
+            products = productRepository.findByCategoryNameAndKeyword(categoryName, keyword);
         } else if (categoryName != null) {
             products = productRepository.findByCategoryId(categoryRepository.findByName(categoryName).get().getId());
-        } else if (status != null) {
-            products = productRepository.findByStatus(status);
+        } else if (keyword != null) {
+            products = productRepository.findByKeyword(keyword);
         } else {
             products = productRepository.findAll();
         }
@@ -128,5 +128,12 @@ public class ProductService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
         return mapToProductResponse(product);
+    }
+
+    public void updateStatusProduct(UUID productId, Boolean status) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+        product.setStatus(status ? "active" : "inactive");
+        productRepository.save(product);
     }
 }
