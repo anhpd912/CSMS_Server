@@ -1,64 +1,99 @@
 package com.fu.coffeeshop_management.server.config;
 
-import com.fu.coffeeshop_management.server.entity.Category;
-import com.fu.coffeeshop_management.server.entity.Role;
-import com.fu.coffeeshop_management.server.entity.Product;
-import com.fu.coffeeshop_management.server.entity.User;
-import com.fu.coffeeshop_management.server.repository.CategoryRepository;
-import com.fu.coffeeshop_management.server.repository.ProductRepository;
-import com.fu.coffeeshop_management.server.repository.RoleRepository;
-import com.fu.coffeeshop_management.server.repository.UserRepository;
+import com.fu.coffeeshop_management.server.entity.*;
+import com.fu.coffeeshop_management.server.repository.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.Set;
 
-/**
- * This component runs on application startup and seeds the database
- * with essential data, like user roles. This is more robust than data.sql.
- */
 @Component
-public class DataSeeder /*implements CommandLineRunner*/ {
+public class DataSeeder /*implements CommandLineRunner */{
 
-    /*private final RoleRepository roleRepository;
+    // Constants for Role names
+    /*private static final String ROLE_MANAGER = "MANAGER";
+    private static final String ROLE_CASHIER = "CASHIER";
+    private static final String ROLE_WAITER = "WAITER";
+
+    // Constants for Category names
+    private static final String CATEGORY_COFFEE = "COFFEE";
+    private static final String CATEGORY_BUBBLE_TEA = "BUBBLE TEA";
+    private static final String CATEGORY_TEA = "TEA";
+    private static final String CATEGORY_JUICE = "JUICE";
+    private static final String CATEGORY_FAST_FOOD = "FAST FOOD";
+
+    // Constants for Table names
+    private static final String TABLE_101_NAME = "Bàn 101";
+    private static final String TABLE_102_NAME = "Bàn 102";
+    private static final String TABLE_201_NAME = "Bàn 201";
+
+    // Constants for User emails
+    private static final String MANAGER_EMAIL = "manager@coffeeshop.com";
+    private static final String WAITER_EMAIL = "waiter@coffeeshop.com";
+
+    // Constants for Status
+    private static final String STATUS_AVAILABLE = "Available";
+    private static final String STATUS_OCCUPIED = "Occupied";
+    private static final String STATUS_PENDING = "Pending";
+    private static final String STATUS_ACTIVE = "active";
+
+
+    private final RoleRepository roleRepository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
+    private final TableInfoRepository tableInfoRepository;
     private final ProductRepository productRepository;
+    private final OrderRepository orderRepository;
 
-
-    public DataSeeder(RoleRepository roleRepository, UserRepository userRepository, CategoryRepository categoryRepository, ProductRepository productRepository) {
+    public DataSeeder(RoleRepository roleRepository,
+                      UserRepository userRepository,
+                      CategoryRepository categoryRepository,
+                      TableInfoRepository tableInfoRepository,
+                      ProductRepository productRepository,
+                      OrderRepository orderRepository) {
         this.roleRepository = roleRepository;
         this.userRepository = userRepository;
         this.categoryRepository = categoryRepository;
+        this.tableInfoRepository = tableInfoRepository;
         this.productRepository = productRepository;
+        this.orderRepository = orderRepository;
     }
 
     @Override
-    public void run(String... args) throws Exception {
+    @Transactional
+    public void run(String... args) {
         seedRoles();
         seedManager();
+        seedWaiter();
         seedCategoryProduct();
         seedProducts();
+        seedTableInfo();
+        seedOrdersAndDetails();
     }
 
     private void seedRoles() {
-        if (roleRepository.findByName("MANAGER").isEmpty()) {
-            roleRepository.save(Role.builder().name("MANAGER").build());
+        if (roleRepository.findByName(ROLE_MANAGER).isEmpty()) {
+            roleRepository.save(Role.builder().name(ROLE_MANAGER).build());
         }
-        if (roleRepository.findByName("CASHIER").isEmpty()) {
-            roleRepository.save(Role.builder().name("CASHIER").build());
+        if (roleRepository.findByName(ROLE_CASHIER).isEmpty()) {
+            roleRepository.save(Role.builder().name(ROLE_CASHIER).build());
         }
-        if (roleRepository.findByName("WAITER").isEmpty()) {
-            roleRepository.save(Role.builder().name("WAITER").build());
+        if (roleRepository.findByName(ROLE_WAITER).isEmpty()) {
+            roleRepository.save(Role.builder().name(ROLE_WAITER).build());
         }
     }
 
     private void seedManager() {
-        if (userRepository.findByEmail("manager@coffeeshop.com").isEmpty()) {
-            userRepository.save(User.builder().email("manager@coffeeshop.com")
+        if (userRepository.findByEmail(MANAGER_EMAIL).isEmpty()) {
+            Role managerRole = roleRepository.findByName(ROLE_MANAGER)
+                    .orElseThrow(() -> new RuntimeException("MANAGER role not found!"));
+            userRepository.save(User.builder().email(MANAGER_EMAIL)
                     .password(new BCryptPasswordEncoder().encode("Manager123"))
-                    .role(roleRepository.findByName("MANAGER").get())
+                    .role(managerRole)
                     .mobile("0123456780")
                     .fullname("Manager")
                     .build()
@@ -66,96 +101,167 @@ public class DataSeeder /*implements CommandLineRunner*/ {
         }
     }
 
+    private void seedWaiter() {
+        if (userRepository.findByEmail(WAITER_EMAIL).isEmpty()) {
+            Role waiterRole = roleRepository.findByName(ROLE_WAITER)
+                    .orElseThrow(() -> new RuntimeException("WAITER role not found!"));
+            userRepository.save(User.builder().email(WAITER_EMAIL)
+                    .password(new BCryptPasswordEncoder().encode("Waiter123"))
+                    .role(waiterRole)
+                    .mobile("0987654321")
+                    .fullname("Nhân Viên Phục Vụ")
+                    .build()
+            );
+        }
+    }
+
     private void seedCategoryProduct() {
-        if (categoryRepository.findByName("COFFEE").isEmpty()) {
-            categoryRepository.save(Category.builder()
-                    .description("Coffee drinks")
-                    .name("COFFEE")
-                    .build());
+        if (categoryRepository.findByName(CATEGORY_COFFEE).isEmpty()) {
+            categoryRepository.save(Category.builder().description("Coffee drinks").name(CATEGORY_COFFEE).build());
         }
-        if (categoryRepository.findByName("BUBBLE TEA").isEmpty()) {
-            categoryRepository.save(Category.builder()
-                    .description("Bubble tea lady drinks")
-                    .name("BUBBLE TEA")
-                    .build());
+        if (categoryRepository.findByName(CATEGORY_BUBBLE_TEA).isEmpty()) {
+            categoryRepository.save(Category.builder().description("Bubble tea lady drinks").name(CATEGORY_BUBBLE_TEA).build());
         }
-        if (categoryRepository.findByName("TEA").isEmpty()) {
-            categoryRepository.save(Category.builder()
-                    .description("Tea drinks")
-                    .name("TEA")
-                    .build());
+        if (categoryRepository.findByName(CATEGORY_TEA).isEmpty()) {
+            categoryRepository.save(Category.builder().description("Tea drinks").name(CATEGORY_TEA).build());
         }
-        if (categoryRepository.findByName("JUICE").isEmpty()) {
-            categoryRepository.save(Category.builder()
-                    .description("Juice drinks")
-                    .name("JUICE")
-                    .build());
+        if (categoryRepository.findByName(CATEGORY_JUICE).isEmpty()) {
+            categoryRepository.save(Category.builder().description("Juice drinks").name(CATEGORY_JUICE).build());
         }
-        if (categoryRepository.findByName("FAST FOOD").isEmpty()) {
-            categoryRepository.save(Category.builder()
-                    .description("Fast food")
-                    .name("FAST FOOD")
-                    .build());
+        if (categoryRepository.findByName(CATEGORY_FAST_FOOD).isEmpty()) {
+            categoryRepository.save(Category.builder().description("Fast food").name(CATEGORY_FAST_FOOD).build());
         }
     }
 
     private void seedProducts() {
-        // Coffee
-        Category coffeeCategory = categoryRepository.findByName("COFFEE").orElse(null);
-        if (coffeeCategory != null) {
-            if (productRepository.findByName("Espresso").isEmpty()) {
-                productRepository.save(Product.builder().name("Espresso").description("Strong black coffee").price(new BigDecimal("35000.00")).imageLink("https://example.com/images/espresso.jpg").category(coffeeCategory).build());
-            }
-            if (productRepository.findByName("Latte").isEmpty()) {
-                productRepository.save(Product.builder().name("Latte").description("Coffee with steamed milk").price(new BigDecimal("45000.00")).imageLink("https://example.com/images/latte.jpg").category(coffeeCategory).build());
-            }
-            if (productRepository.findByName("Cappuccino").isEmpty()) {
-                productRepository.save(Product.builder().name("Cappuccino").description("Espresso with a thick layer of milk foam").price(new BigDecimal("45000.00")).imageLink("https://example.com/images/cappuccino.jpg").category(coffeeCategory).build());
-            }
+        categoryRepository.findByName(CATEGORY_COFFEE).ifPresent(category -> {
+            saveProductWithStock("Espresso", "Strong black coffee", new BigDecimal("35000.00"), "https://example.com/images/espresso.jpg", category, 100);
+            saveProductWithStock("Latte", "Coffee with steamed milk", new BigDecimal("45000.00"), "https://example.com/images/latte.jpg", category, 100);
+            saveProductWithStock("Cappuccino", "Espresso with a thick layer of milk foam", new BigDecimal("45000.00"), "https://example.com/images/cappuccino.jpg", category, 100);
+        });
+
+        categoryRepository.findByName(CATEGORY_BUBBLE_TEA).ifPresent(category -> {
+            saveProductWithStock("Black Sugar Bubble Tea", "Fresh milk with black sugar and pearls", new BigDecimal("50000.00"), "https://example.com/images/black-sugar-bubble-tea.jpg", category, 50);
+            saveProductWithStock("Taro Bubble Tea", "Sweet taro flavored milk tea", new BigDecimal("48000.00"), "https://example.com/images/taro-bubble-tea.jpg", category, 50);
+        });
+
+        categoryRepository.findByName(CATEGORY_TEA).ifPresent(category -> {
+            saveProductWithStock("Peach Tea", "Refreshing peach flavored iced tea", new BigDecimal("40000.00"), "https://example.com/images/peach-tea.jpg", category, 80);
+        });
+
+        categoryRepository.findByName(CATEGORY_JUICE).ifPresent(category -> {
+            saveProductWithStock("Orange Juice", "Freshly squeezed orange juice", new BigDecimal("38000.00"), "https://example.com/images/orange-juice.jpg", category, 70);
+        });
+
+        categoryRepository.findByName(CATEGORY_FAST_FOOD).ifPresent(category -> {
+            saveProductWithStock("French Fries", "Crispy salted french fries", new BigDecimal("30000.00"), "https://example.com/images/french-fries.jpg", category, 200);
+        });
+    }
+
+    private void saveProductWithStock(String name, String desc, BigDecimal price, String imgLink, Category category, int initialStock) {
+        if (productRepository.findByName(name).isEmpty()) {
+            Product product = Product.builder()
+                    .name(name)
+                    .description(desc)
+                    .price(price)
+                    .imageLink(imgLink)
+                    .category(category)
+                    .status(STATUS_ACTIVE)
+                    .build();
+
+            Stock stock = Stock.builder()
+                    .product(product)
+                    .quantityInStock(initialStock)
+                    .reorderLevel(10)
+                    .build();
+
+            product.setStock(stock);
+            productRepository.save(product);
+        }
+    }
+
+    private void seedTableInfo() {
+        if (tableInfoRepository.findByNameContainingIgnoreCase(TABLE_101_NAME).isEmpty()) {
+            tableInfoRepository.save(TableInfo.builder().name(TABLE_101_NAME).location("Tầng 1 - Gần cửa").status(STATUS_AVAILABLE).seatCount(4).build());
+        }
+        if (tableInfoRepository.findByNameContainingIgnoreCase(TABLE_102_NAME).isEmpty()) {
+            tableInfoRepository.save(TableInfo.builder().name(TABLE_102_NAME).location("Tầng 1 - Trong góc").status(STATUS_AVAILABLE).seatCount(2).build());
+        }
+        if (tableInfoRepository.findByNameContainingIgnoreCase(TABLE_201_NAME).isEmpty()) {
+            tableInfoRepository.save(TableInfo.builder().name(TABLE_201_NAME).location("Tầng 2 - Ban công").status(STATUS_AVAILABLE).seatCount(6).build());
+        }
+    }
+
+    private void seedOrdersAndDetails() {
+        if (orderRepository.count() > 0) {
+            return;
         }
 
-        // Bubble Tea
-        Category bubbleTeaCategory = categoryRepository.findByName("BUBBLE TEA").orElse(null);
-        if (bubbleTeaCategory != null) {
-            if (productRepository.findByName("Black Sugar Bubble Tea").isEmpty()) {
-                productRepository.save(Product.builder().name("Black Sugar Bubble Tea").description("Fresh milk with black sugar and pearls").price(new BigDecimal("50000.00")).imageLink("https://example.com/images/black-sugar-bubble-tea.jpg").category(bubbleTeaCategory).build());
-            }
-            if (productRepository.findByName("Taro Bubble Tea").isEmpty()) {
-                productRepository.save(Product.builder().name("Taro Bubble Tea").description("Sweet taro flavored milk tea").price(new BigDecimal("48000.00")).imageLink("https://example.com/images/taro-bubble-tea.jpg").category(bubbleTeaCategory).build());
-            }
-        }
+        User waiter = userRepository.findByEmail(WAITER_EMAIL).orElseThrow(() -> new RuntimeException("Waiter user not found!"));
 
-        // Tea
-        Category teaCategory = categoryRepository.findByName("TEA").orElse(null);
-        if (teaCategory != null) {
-            if (productRepository.findByName("Peach Tea").isEmpty()) {
-                productRepository.save(Product.builder().name("Peach Tea").description("Refreshing peach flavored iced tea").price(new BigDecimal("40000.00")).imageLink("https://example.com/images/peach-tea.jpg").category(teaCategory).build());
-            }
-            if (productRepository.findByName("Lychee Tea").isEmpty()) {
-                productRepository.save(Product.builder().name("Lychee Tea").description("Sweet lychee flavored iced tea").price(new BigDecimal("42000.00")).imageLink("https://example.com/images/lychee-tea.jpg").category(teaCategory).build());
-            }
-        }
+        TableInfo table101 = tableInfoRepository.findByNameContainingIgnoreCase(TABLE_101_NAME).stream().findFirst().orElseThrow(() -> new RuntimeException("Table 101 not found!"));
+        TableInfo table102 = tableInfoRepository.findByNameContainingIgnoreCase(TABLE_102_NAME).stream().findFirst().orElseThrow(() -> new RuntimeException("Table 102 not found!"));
 
-        // Juice
-        Category juiceCategory = categoryRepository.findByName("JUICE").orElse(null);
-        if (juiceCategory != null) {
-            if (productRepository.findByName("Orange Juice").isEmpty()) {
-                productRepository.save(Product.builder().name("Orange Juice").description("Freshly squeezed orange juice").price(new BigDecimal("38000.00")).imageLink("https://example.com/images/orange-juice.jpg").category(juiceCategory).build());
-            }
-            if (productRepository.findByName("Watermelon Juice").isEmpty()) {
-                productRepository.save(Product.builder().name("Watermelon Juice").description("Fresh watermelon juice").price(new BigDecimal("35000.00")).imageLink("https://example.com/images/watermelon-juice.jpg").category(juiceCategory).build());
-            }
-        }
+        Product latte = productRepository.findByName("Latte").orElseThrow(() -> new RuntimeException("Latte not found!"));
+        Product fries = productRepository.findByName("French Fries").orElseThrow(() -> new RuntimeException("French Fries not found!"));
+        Product espresso = productRepository.findByName("Espresso").orElseThrow(() -> new RuntimeException("Espresso not found!"));
+        Product taroTea = productRepository.findByName("Taro Bubble Tea").orElseThrow(() -> new RuntimeException("Taro Tea not found!"));
 
-        // Fast Food
-        Category fastFoodCategory = categoryRepository.findByName("FAST FOOD").orElse(null);
-        if (fastFoodCategory != null) {
-            if (productRepository.findByName("French Fries").isEmpty()) {
-                productRepository.save(Product.builder().name("French Fries").description("Crispy salted french fries").price(new BigDecimal("30000.00")).imageLink("https://example.com/images/french-fries.jpg").category(fastFoodCategory).build());
-            }
-            if (productRepository.findByName("Chicken Nuggets").isEmpty()) {
-                productRepository.save(Product.builder().name("Chicken Nuggets").description("Deep fried chicken nuggets").price(new BigDecimal("45000.00")).imageLink("https://example.com/images/chicken-nuggets.jpg").category(fastFoodCategory).build());
-            }
-        }
+        // --- Order 1 ---
+        Order order1 = Order.builder()
+                .status(STATUS_PENDING)
+                .createdAt(LocalDateTime.now().minusMinutes(30))
+                .updatedAt(LocalDateTime.now().minusMinutes(30))
+                .totalPrice(75000.00)
+                .table(table101)
+                .staff(waiter)
+                .build();
+
+        OrderDetail detail11 = OrderDetail.builder().product(latte).quantity(1).price(latte.getPrice()).build();
+        detail11.setOrder(order1); // <-- FIX: Set back-reference
+
+        OrderDetail detail12 = OrderDetail.builder().product(fries).quantity(1).price(fries.getPrice()).build();
+        detail12.setOrder(order1); // <-- FIX: Set back-reference
+
+        order1.setOrderDetails(Set.of(detail11, detail12));
+        orderRepository.save(order1);
+
+        table101.setStatus(STATUS_OCCUPIED);
+        tableInfoRepository.save(table101);
+
+        // --- Order 2 ---
+        Order order2 = Order.builder()
+                .status(STATUS_PENDING)
+                .createdAt(LocalDateTime.now().minusHours(2))
+                .updatedAt(LocalDateTime.now().minusHours(2))
+                .totalPrice(70000.00)
+                .table(table102)
+                .staff(waiter)
+                .build();
+
+        OrderDetail detail21 = OrderDetail.builder().product(espresso).quantity(2).price(espresso.getPrice()).build();
+        detail21.setOrder(order2); // <-- FIX: Set back-reference
+
+        order2.setOrderDetails(Set.of(detail21));
+        orderRepository.save(order2);
+
+        table102.setStatus(STATUS_OCCUPIED);
+        tableInfoRepository.save(table102);
+
+        // --- Order 3 ---
+        Order order3 = Order.builder()
+                .status(STATUS_PENDING)
+                .createdAt(LocalDateTime.now().minusDays(1))
+                .updatedAt(LocalDateTime.now().minusDays(1))
+                .totalPrice(48000.00)
+                .table(table101) // Another order on the same table
+                .staff(waiter)
+                .build();
+
+        OrderDetail detail31 = OrderDetail.builder().product(taroTea).quantity(1).price(taroTea.getPrice()).build();
+        detail31.setOrder(order3); // <-- FIX: Set back-reference
+
+        order3.setOrderDetails(Set.of(detail31));
+        orderRepository.save(order3);
     }*/
 }

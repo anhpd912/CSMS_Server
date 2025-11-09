@@ -27,7 +27,7 @@ import java.util.UUID;
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id", nullable = false, updatable = false)
+    @Column(name = "id",  nullable = false, updatable = false)
     private UUID id;
 
     @Column(name = "status", length = 50, nullable = false)
@@ -66,3 +66,4 @@ public class Order {
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
     private Bill bill;
 }
+

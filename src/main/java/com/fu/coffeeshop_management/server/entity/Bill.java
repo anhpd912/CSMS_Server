@@ -3,21 +3,20 @@ package com.fu.coffeeshop_management.server.entity;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 /**
  * Entity representation of the 'bill' table.
  * Based on the SDD 'bill' table definition.
  */
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -35,9 +34,19 @@ public class Bill {
     @JoinColumn(name = "order_id", nullable = false, unique = true)
     private Order order;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "payment_id", nullable = false, unique = true)
-    private Payment payment;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", nullable = true)
+    private Customer customer;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "voucher_id", nullable = true)
+    private Voucher voucher;
+
+    @Column(name = "points_redeemed")
+    private int pointsRedeemed;
+
+    @Column(name = "subtotal", nullable = false, precision = 10, scale = 2)
+    private BigDecimal subtotal;
 
     @Column(name = "discount", columnDefinition = "DECIMAL(10,2)")
     private BigDecimal discount;
@@ -54,4 +63,6 @@ public class Bill {
     @Column(name = "payment_status", nullable = false)
     private String paymentStatus;
 
+    @OneToMany(mappedBy = "bill", fetch = FetchType.LAZY)
+    private List<BillPayment> billPayments;
 }

@@ -14,11 +14,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Service
 @RequiredArgsConstructor
 @Slf4j
 public class TableInfoService {
-    private final TableInfoRepository tableInfoRepository;
+    private final TableInfoRepository tableRepo;
 
     private static final String STATUS_AVAILABLE = "Available";
     private static final String STATUS_OCCUPIED = "Occupied";
@@ -34,6 +33,17 @@ public class TableInfoService {
     private static final String ROLE_WAITER = "WAITER";
     private static final String ROLE_MANAGER = "MANAGER";
 
+    // Helper method to convert TableInfo entity to TableInfoDTO
+    private TableInfoDTO convertToDTO(TableInfo tableInfo) {
+        return TableInfoDTO.builder()
+                .id(tableInfo.getId())
+                .name(tableInfo.getName())
+                .location(tableInfo.getLocation())
+                .status(tableInfo.getStatus())
+                .seatCount(tableInfo.getSeatCount())
+                .build();
+    }
+
     public List<TableInfoDTO> listTables(String status, String keyword) {
 
         boolean hasStatus = (status != null && !status.isBlank());
@@ -41,16 +51,16 @@ public class TableInfoService {
 
         List<TableInfo> tables;
         if (hasStatus && hasKeyword) {
-            tables = tableInfoRepository.findByStatusIgnoreCaseAndNameContainingIgnoreCase(status, keyword);
+            tables = tableRepo.findByStatusIgnoreCaseAndNameContainingIgnoreCase(status, keyword);
         }
         else if (hasStatus) {
-            tables = tableInfoRepository.findByStatusIgnoreCase(status);
+            tables = tableRepo.findByStatusIgnoreCase(status);
         }
         else if (hasKeyword) {
-            tables = tableInfoRepository.findByNameContainingIgnoreCase(keyword);
+            tables = tableRepo.findByNameContainingIgnoreCase(keyword);
         }
         else {
-            tables = tableInfoRepository.findAll();
+            tables = tableRepo.findAll();
         }
         return tables.stream().map(this::mapToTableInfoDTO).collect(Collectors.toList());
     }
@@ -60,29 +70,29 @@ public class TableInfoService {
      * Accessible by: Cashier, Waiter, Manager
      */
     @Transactional(readOnly = true)
-    public List<TableResponse> getAllTables(String status, String location, Integer minSheetCount) {
-        log.info("Fetching all tables with filters - status: {}, location: {}, minSheetCount: {}",
-                status, location, minSheetCount);
+    public List<TableResponse> getAllTables(String status, String location, Integer minSeatCount) {
+        log.info("Fetching all tables with filters - status: {}, location: {}, minSeatCount: {}",
+                 status, location, minSeatCount);
 
         List<TableInfo> tables;
 
         // Apply filters based on provided parameters
         if (status != null && location != null) {
-            tables = tableInfoRepository.findByStatusAndLocation(status, location);
+            tables = tableRepo.findByStatusAndLocation(status, location);
         } else if (status != null) {
-            tables = tableInfoRepository.findByStatus(status);
+            tables = tableRepo.findByStatus(status);
         } else if (location != null) {
-            tables = tableInfoRepository.findByLocation(location);
-        } else if (minSheetCount != null) {
-            tables = tableInfoRepository.findByMinSheetCount(minSheetCount);
+            tables = tableRepo.findByLocation(location);
+        } else if (minSeatCount != null) {
+            tables = tableRepo.findByMinSeatCount(minSeatCount);
         } else {
-            tables = tableInfoRepository.findAll();
+            tables = tableRepo.findAll();
         }
 
-        // Apply additional filtering for minSheetCount if needed
-        if (minSheetCount != null && (status != null || location != null)) {
+        // Apply additional filtering for minSeatCount if needed
+        if (minSeatCount != null && (status != null || location != null)) {
             tables = tables.stream()
-                    .filter(t -> t.getSeat_count() >= minSheetCount)
+                    .filter(t -> t.getSeatCount() >= minSeatCount)
                     .collect(Collectors.toList());
         }
 
@@ -97,11 +107,11 @@ public class TableInfoService {
      */
     @Transactional(readOnly = true)
     public Page<TableResponse> getTablesWithPagination(String status, String location,
-                                                       Integer minSheetCount, Pageable pageable) {
+                                                        Integer minSeatCount, Pageable pageable) {
         log.info("Fetching tables with pagination - page: {}, size: {}",
-                pageable.getPageNumber(), pageable.getPageSize());
+                 pageable.getPageNumber(), pageable.getPageSize());
 
-        Page<TableInfo> tables = tableInfoRepository.searchTables(status, location, minSheetCount, pageable);
+        Page<TableInfo> tables = tableRepo.searchTables(status, location, minSeatCount, pageable);
 
         return tables.map(this::mapToTableResponse);
     }
@@ -114,8 +124,8 @@ public class TableInfoService {
     public TableResponse getTableById(UUID tableId) {
         log.info("Fetching table by ID: {}", tableId);
 
-        TableInfo table = tableInfoRepository.findById(tableId)
-                .orElseThrow(() -> new TableService.ResourceNotFoundException("Table not found with ID: " + tableId));
+        TableInfo table = tableRepo.findById(tableId)
+                .orElseThrow(() -> new ResourceNotFoundException("Table not found with ID: " + tableId));
 
         return mapToTableResponse(table);
     }
@@ -132,7 +142,7 @@ public class TableInfoService {
         validateCreatePermission(currentUser);
 
         // Validate unique table name
-        if (tableInfoRepository.existsByName(request.getName())) {
+        if (tableRepo.existsByName(request.getName())) {
             throw new IllegalArgumentException("Table with name '" + request.getName() + "' already exists");
         }
 
@@ -140,11 +150,11 @@ public class TableInfoService {
         TableInfo table = TableInfo.builder()
                 .name(request.getName())
                 .location(request.getLocation())
-                .seat_count(request.getSheetCount())
+                .seatCount(request.getSeatCount())
                 .status(request.getStatus() != null ? request.getStatus() : STATUS_AVAILABLE)
                 .build();
 
-        TableInfo savedTable = tableInfoRepository.save(table);
+        TableInfo savedTable = tableRepo.save(table);
         log.info("Table created successfully with ID: {}", savedTable.getId());
 
         return mapToTableResponse(savedTable);
@@ -165,7 +175,7 @@ public class TableInfoService {
 
         for (CreateTableRequest request : requests) {
             // Validate unique table name
-            if (tableInfoRepository.existsByName(request.getName())) {
+            if (tableRepo.existsByName(request.getName())) {
                 log.warn("Skipping table '{}' - already exists", request.getName());
                 continue;
             }
@@ -173,14 +183,14 @@ public class TableInfoService {
             TableInfo table = TableInfo.builder()
                     .name(request.getName())
                     .location(request.getLocation())
-                    .seat_count(request.getSheetCount())
+                    .seatCount(request.getSeatCount())
                     .status(request.getStatus() != null ? request.getStatus() : STATUS_AVAILABLE)
                     .build();
 
             tables.add(table);
         }
 
-        List<TableInfo> savedTables = tableInfoRepository.saveAll(tables);
+        List<TableInfo> savedTables = tableRepo.saveAll(tables);
         log.info("Successfully created {} tables", savedTables.size());
 
         return savedTables.stream()
@@ -200,22 +210,22 @@ public class TableInfoService {
         validateUpdatePermission(currentUser);
 
         // Find existing table
-        TableInfo table = tableInfoRepository.findById(tableId)
-                .orElseThrow(() -> new TableService.ResourceNotFoundException("Table not found with ID: " + tableId));
+        TableInfo table = tableRepo.findById(tableId)
+                .orElseThrow(() -> new ResourceNotFoundException("Table not found with ID: " + tableId));
 
         // Check if name is being changed and if new name already exists
         if (!table.getName().equals(request.getName()) &&
-                tableInfoRepository.existsByName(request.getName())) {
+            tableRepo.existsByName(request.getName())) {
             throw new IllegalArgumentException("Table with name '" + request.getName() + "' already exists");
         }
 
         // Update table fields
         table.setName(request.getName());
         table.setLocation(request.getLocation());
-        table.setSeat_count(request.getSheetCount());
+        table.setSeatCount(request.getSeatCount());
         table.setStatus(request.getStatus());
 
-        TableInfo updatedTable = tableInfoRepository.save(table);
+        TableInfo updatedTable = tableRepo.save(table);
         log.info("Table updated successfully: {}", updatedTable.getId());
 
         return mapToTableResponse(updatedTable);
@@ -237,11 +247,11 @@ public class TableInfoService {
             throw new IllegalArgumentException("Invalid status: " + status);
         }
 
-        TableInfo table = tableInfoRepository.findById(tableId)
-                .orElseThrow(() -> new TableService.ResourceNotFoundException("Table not found with ID: " + tableId));
+        TableInfo table = tableRepo.findById(tableId)
+                .orElseThrow(() -> new ResourceNotFoundException("Table not found with ID: " + tableId));
 
         table.setStatus(status);
-        TableInfo updatedTable = tableInfoRepository.save(table);
+        TableInfo updatedTable = tableRepo.save(table);
 
         log.info("Table status updated successfully: {}", updatedTable.getId());
         return mapToTableResponse(updatedTable);
@@ -263,13 +273,13 @@ public class TableInfoService {
             throw new IllegalArgumentException("Invalid status: " + status);
         }
 
-        List<TableInfo> tables = tableInfoRepository.findByLocation(location);
+        List<TableInfo> tables = tableRepo.findByLocation(location);
 
         for (TableInfo table : tables) {
             table.setStatus(status);
         }
 
-        tableInfoRepository.saveAll(tables);
+        tableRepo.saveAll(tables);
         log.info("Successfully updated {} tables", tables.size());
 
         return tables.size();
@@ -287,15 +297,15 @@ public class TableInfoService {
         validateDeletePermission(currentUser);
 
         // Check if table exists
-        TableInfo table = tableInfoRepository.findById(tableId)
-                .orElseThrow(() -> new TableService.ResourceNotFoundException("Table not found with ID: " + tableId));
+        TableInfo table = tableRepo.findById(tableId)
+                .orElseThrow(() -> new ResourceNotFoundException("Table not found with ID: " + tableId));
 
         // Check if table is occupied (business rule: cannot delete occupied tables)
         if (STATUS_OCCUPIED.equals(table.getStatus())) {
             throw new IllegalStateException("Cannot delete occupied table. Please clear the table first.");
         }
 
-        tableInfoRepository.delete(table);
+        tableRepo.delete(table);
         log.info("Table deleted successfully: {}", tableId);
     }
 
@@ -307,7 +317,7 @@ public class TableInfoService {
     public List<TableResponse> getAvailableTablesByLocation(String location) {
         log.info("Fetching available tables for location: {}", location);
 
-        List<TableInfo> tables = tableInfoRepository.findAvailableTablesByLocation(location);
+        List<TableInfo> tables = tableRepo.findAvailableTablesByLocation(location);
 
         return tables.stream()
                 .map(this::mapToTableResponse)
@@ -319,10 +329,10 @@ public class TableInfoService {
      * Accessible by: Cashier, Waiter, Manager
      */
     @Transactional(readOnly = true)
-    public List<TableResponse> getAvailableTablesWithMinSeats(Integer minSheetCount) {
-        log.info("Fetching available tables with minimum {} seats", minSheetCount);
+    public List<TableResponse> getAvailableTablesWithMinSeats(Integer minSeatCount) {
+        log.info("Fetching available tables with minimum {} seats", minSeatCount);
 
-        List<TableInfo> tables = tableInfoRepository.findAvailableTablesWithMinSeats(minSheetCount);
+        List<TableInfo> tables = tableRepo.findAvailableTablesWithMinSeats(minSeatCount);
 
         return tables.stream()
                 .map(this::mapToTableResponse)
@@ -340,32 +350,32 @@ public class TableInfoService {
         // Authorization check
         validateManagerPermission(currentUser);
 
-        Long totalTables = tableInfoRepository.count();
-        Long availableTables = tableInfoRepository.countByStatus(STATUS_AVAILABLE);
-        Long occupiedTables = tableInfoRepository.countByStatus(STATUS_OCCUPIED);
-        Long reservedTables = tableInfoRepository.countByStatus(STATUS_RESERVED);
+        Long totalTables = tableRepo.count();
+        Long availableTables = tableRepo.countByStatus(STATUS_AVAILABLE);
+        Long occupiedTables = tableRepo.countByStatus(STATUS_OCCUPIED);
+        Long reservedTables = tableRepo.countByStatus(STATUS_RESERVED);
 
         // Statistics by location
         Map<String, Integer> tablesByLocation = new HashMap<>();
-        List<String> locations = tableInfoRepository.findAllLocations();
+        List<String> locations = tableRepo.findAllLocations();
         for (String location : locations) {
-            tablesByLocation.put(location, Math.toIntExact(tableInfoRepository.countByLocation(location)));
+            tablesByLocation.put(location, Math.toIntExact(tableRepo.countByLocation(location)));
         }
 
         // Statistics by capacity
         Map<String, Integer> tablesByCapacity = new HashMap<>();
-        List<TableInfo> allTables = tableInfoRepository.findAll();
-        tablesByCapacity.put("1-2 seats", (int) allTables.stream().filter(t -> t.getSeat_count() <= 2).count());
-        tablesByCapacity.put("3-4 seats", (int) allTables.stream().filter(t -> t.getSeat_count() >= 3 && t.getSeat_count() <= 4).count());
-        tablesByCapacity.put("5-6 seats", (int) allTables.stream().filter(t -> t.getSeat_count() >= 5 && t.getSeat_count() <= 6).count());
-        tablesByCapacity.put("7+ seats", (int) allTables.stream().filter(t -> t.getSeat_count() >= 7).count());
+        List<TableInfo> allTables = tableRepo.findAll();
+        tablesByCapacity.put("1-2 seats", (int) allTables.stream().filter(t -> t.getSeatCount() <= 2).count());
+        tablesByCapacity.put("3-4 seats", (int) allTables.stream().filter(t -> t.getSeatCount() >= 3 && t.getSeatCount() <= 4).count());
+        tablesByCapacity.put("5-6 seats", (int) allTables.stream().filter(t -> t.getSeatCount() >= 5 && t.getSeatCount() <= 6).count());
+        tablesByCapacity.put("7+ seats", (int) allTables.stream().filter(t -> t.getSeatCount() >= 7).count());
 
         // Calculate occupancy rate
         Double occupancyRate = totalTables > 0 ?
                 (occupiedTables.doubleValue() / totalTables.doubleValue()) * 100 : 0.0;
 
         // Calculate average seats per table
-        Double averageSeatsPerTable = tableInfoRepository.getAverageSheetCount();
+        Double averageSeatsPerTable = tableRepo.getAverageSeatCount();
 
         return TableStatisticsResponse.builder()
                 .totalTables(Math.toIntExact(totalTables))
@@ -384,28 +394,28 @@ public class TableInfoService {
     private void validateCreatePermission(User user) {
         String role = user.getRole().getName();
         if (!ROLE_WAITER.equals(role) && !ROLE_MANAGER.equals(role)) {
-            throw new TableService.UnauthorizedException("Only Waiters and Managers can create tables");
+            throw new UnauthorizedException("Only Waiters and Managers can create tables");
         }
     }
 
     private void validateUpdatePermission(User user) {
         String role = user.getRole().getName();
         if (!ROLE_WAITER.equals(role) && !ROLE_MANAGER.equals(role)) {
-            throw new TableService.UnauthorizedException("Only Waiters and Managers can update tables");
+            throw new UnauthorizedException("Only Waiters and Managers can update tables");
         }
     }
 
     private void validateDeletePermission(User user) {
         String role = user.getRole().getName();
         if (!ROLE_MANAGER.equals(role)) {
-            throw new TableService.UnauthorizedException("Only Managers can delete tables");
+            throw new UnauthorizedException("Only Managers can delete tables");
         }
     }
 
     private void validateManagerPermission(User user) {
         String role = user.getRole().getName();
         if (!ROLE_MANAGER.equals(role)) {
-            throw new TableService.UnauthorizedException("Only Managers can access this resource");
+            throw new UnauthorizedException("Only Managers can access this resource");
         }
     }
 
@@ -413,28 +423,18 @@ public class TableInfoService {
 
     private boolean isValidStatus(String status) {
         return STATUS_AVAILABLE.equals(status) ||
-                STATUS_OCCUPIED.equals(status) ||
-                STATUS_RESERVED.equals(status);
+               STATUS_OCCUPIED.equals(status) ||
+               STATUS_RESERVED.equals(status);
     }
 
     // ============= Mapping Helper Methods =============
-
-    private TableInfoDTO mapToTableInfoDTO(TableInfo table) {
-        return TableInfoDTO.builder()
-                .id(table.getId())
-                .name(table.getName())
-                .location(table.getLocation())
-                .seat_count(table.getSeat_count())
-                .status(table.getStatus())
-                .build();
-    }
 
     private TableResponse mapToTableResponse(TableInfo table) {
         return TableResponse.builder()
                 .id(table.getId())
                 .name(table.getName())
                 .location(table.getLocation())
-                .sheetCount(table.getSeat_count())
+                .seatCount(table.getSeatCount())
                 .status(table.getStatus())
                 .isAvailable(STATUS_AVAILABLE.equals(table.getStatus()))
                 .currentOrders(0) // TODO: Calculate from actual orders when Order feature is implemented
@@ -454,4 +454,5 @@ public class TableInfoService {
             super(message);
         }
     }
+
 }

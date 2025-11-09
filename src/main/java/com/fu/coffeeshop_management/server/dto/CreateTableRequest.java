@@ -23,10 +23,10 @@ public class CreateTableRequest {
     @Pattern(regexp = "Indoor|Outdoor|Balcony", message = "Location must be Indoor, Outdoor, or Balcony")
     private String location;
 
-    @NotNull(message = "Sheet count is required")
-    @Min(value = 1, message = "Sheet count must be at least 1")
-    @Max(value = 20, message = "Sheet count cannot exceed 20")
-    private Integer sheetCount;
+    @NotNull(message = "Seat count is required")
+    @Min(value = 1, message = "Seat count must be at least 1")
+    @Max(value = 20, message = "Seat count cannot exceed 20")
+    private Integer seatCount;
 
     @Pattern(regexp = "Available|Occupied|Reserved", message = "Status must be Available, Occupied, or Reserved")
     private String status; // Default will be "Available" if not provided

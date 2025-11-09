@@ -2,10 +2,7 @@ package com.fu.coffeeshop_management.server.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.Set;
 import java.util.UUID;
@@ -14,7 +11,8 @@ import java.util.UUID;
  * Entity representation of the 'role' table.
  * Based on the SDD 'role' table definition.
  */
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -30,7 +28,6 @@ public class Role {
     @Column(name = "name", length = 50, nullable = false, unique = true)
     private String name;
 
-    // This defines the "other side" of the relationship
     @OneToMany(mappedBy = "role")
     @JsonManagedReference
     private Set<User> users;

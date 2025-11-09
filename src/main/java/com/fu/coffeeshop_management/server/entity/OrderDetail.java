@@ -16,7 +16,7 @@ import java.util.UUID;
  */
 
 @Builder
-@Getter // Thêm
+@Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -44,3 +44,4 @@ public class OrderDetail {
     @Column(name = "price", nullable = false, columnDefinition = "DECIMAL(10,2)")
     private BigDecimal price;
 }
+

@@ -14,6 +14,7 @@ import java.util.UUID;
 
 @Repository
 public interface TableInfoRepository extends JpaRepository<TableInfo, UUID> {
+    
     /**
      * Finds all tables by their current status (e.g., "Available", "Occupied").
      */
@@ -36,81 +37,87 @@ public interface TableInfoRepository extends JpaRepository<TableInfo, UUID> {
     List<TableInfo> findByStatusAndLocation(String status, String location);
 
     /**
-     * Finds tables with sheet count greater than or equal to minimum
+     * Finds tables with seat count greater than or equal to minimum
      */
-    @Query("SELECT t FROM TableInfo t WHERE t.seat_count >= :minSheetCount")
-    List<TableInfo> findByMinSheetCount(@Param("minSheetCount") Integer minSheetCount);
-
+    @Query("SELECT t FROM TableInfo t WHERE t.seatCount >= :minSeatCount")
+    List<TableInfo> findByMinSeatCount(@Param("minSeatCount") Integer minSeatCount);
+    
     /**
      * Finds available tables by location
      */
     @Query("SELECT t FROM TableInfo t WHERE t.status = 'Available' AND t.location = :location")
     List<TableInfo> findAvailableTablesByLocation(@Param("location") String location);
-
+    
     /**
-     * Finds available tables with minimum sheet count
+     * Finds available tables with minimum seat count
      */
-    @Query("SELECT t FROM TableInfo t WHERE t.status = 'Available' AND t.seat_count >= :minSheetCount")
-    List<TableInfo> findAvailableTablesWithMinSeats(@Param("minSheetCount") Integer minSheetCount);
-
+    @Query("SELECT t FROM TableInfo t WHERE t.status = 'Available' AND t.seatCount >= :minSeatCount")
+    List<TableInfo> findAvailableTablesWithMinSeats(@Param("minSeatCount") Integer minSeatCount);
+    
     /**
      * Finds table by name
      */
     Optional<TableInfo> findByName(String name);
-
+    
     /**
      * Checks if a table with the given name exists
      */
     boolean existsByName(String name);
-
+    
     /**
      * Counts tables by status
      */
     @Query("SELECT COUNT(t) FROM TableInfo t WHERE t.status = :status")
     Long countByStatus(@Param("status") String status);
-
+    
     /**
      * Counts tables by location
      */
     Long countByLocation(String location);
-
+    
     /**
      * Gets all tables with pagination
      */
     Page<TableInfo> findAll(Pageable pageable);
-
+    
     /**
      * Gets tables by status with pagination
      */
     Page<TableInfo> findByStatus(String status, Pageable pageable);
-
+    
     /**
      * Gets tables by location with pagination
      */
     Page<TableInfo> findByLocation(String location, Pageable pageable);
-
+    
     /**
      * Advanced search with multiple filters
      */
     @Query("SELECT t FROM TableInfo t WHERE " +
-            "(:status IS NULL OR t.status = :status) AND " +
-            "(:location IS NULL OR t.location = :location) AND " +
-            "(:minSheetCount IS NULL OR t.seat_count >= :minSheetCount)")
+           "(:status IS NULL OR t.status = :status) AND " +
+           "(:location IS NULL OR t.location = :location) AND " +
+           "(:minSeatCount IS NULL OR t.seatCount >= :minSeatCount)")
     Page<TableInfo> searchTables(@Param("status") String status,
-                                 @Param("location") String location,
-                                 @Param("minSheetCount") Integer minSheetCount,
-                                 Pageable pageable);
-
+                                  @Param("location") String location,
+                                  @Param("minSeatCount") Integer minSeatCount,
+                                  Pageable pageable);
+    
     /**
      * Gets all unique locations
      */
     @Query("SELECT DISTINCT t.location FROM TableInfo t")
     List<String> findAllLocations();
-
+    
     /**
-     * Gets average sheet count
+     * Gets average seat count
      */
-    @Query("SELECT AVG(t.seat_count) FROM TableInfo t")
-    Double getAverageSheetCount();
+    @Query("SELECT AVG(t.seatCount) FROM TableInfo t")
+    Double getAverageSeatCount();
+
+    List<TableInfo> findByStatusIgnoreCase(String status);
+
+    List<TableInfo> findByNameContainingIgnoreCase(String name);
+
+    List<TableInfo> findByStatusIgnoreCaseAndNameContainingIgnoreCase(String status, String name);
 
 }

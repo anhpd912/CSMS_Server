@@ -24,6 +24,11 @@ public interface ProductRepository extends JpaRepository<Product, UUID>{
      */
     List<Product> findByCategoryNameAndStatus(String categoryName, String status);
 
+    @Query("SELECT p FROM Product p JOIN FETCH p.category c WHERE c.name = :categoryName AND p.name LIKE %:keyword%")
+    List<Product> findByCategoryNameAndKeyword(String categoryName, String keyword);
+
+    List<Product> findAllByName(String name);
+
     /**
      * Finds all products by their status (e.g., "active" or "inactive").
      */
@@ -64,4 +69,9 @@ public interface ProductRepository extends JpaRepository<Product, UUID>{
             @Param("categoryId") UUID categoryId,
             @Param("keyword") String keyword
     );
+
+    @Query("SELECT p FROM Product p WHERE p.name LIKE %:keyword%")
+    List<Product> findByKeyword(String keyword);
+
+    Optional<Product> findByName(String name);
 }

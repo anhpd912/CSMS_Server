@@ -23,7 +23,7 @@ import java.util.UUID;
 public class TableInfo {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id", length = 36, nullable = false, updatable = false)
+    @Column(name = "id", length = 16, nullable = false, updatable = false)
     private UUID id;
 
     @Column(name = "name", length = 50, nullable = false)
@@ -36,7 +36,7 @@ public class TableInfo {
     private String status; // e.g., "Available", "Occupied", "Reserved"
 
     @Column(name = "seat_count", nullable = false)
-    private Integer seat_count;
+    private Integer seatCount;
 
     // --- Relationships ---
 
@@ -49,3 +49,4 @@ public class TableInfo {
     @Builder.Default
     private Set<TableOrder> tableOrders = new HashSet<>();
 }
+
