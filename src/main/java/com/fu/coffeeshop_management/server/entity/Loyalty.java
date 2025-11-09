@@ -1,21 +1,13 @@
 package com.fu.coffeeshop_management.server.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.hibernate.annotations.GenericGenerator;
 
 import java.util.UUID;
 
-/**
- * Entity representation of the 'loyalty' table.
- * Based on the SDD 'loyalty' table definition.
- * Note: Your SDD shows loyalty_id in both user and loyalty.
- * A cleaner design is to have 'user.id' as the PK/FK.
- * But I will follow the SDD.
- */
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -24,10 +16,10 @@ import java.util.UUID;
 public class Loyalty {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id", nullable = false, updatable = false)
-    private UUID id;
+    @Column(name = "loyalty_id", nullable = false, updatable = false)
+    private UUID loyaltyId;
 
-    @Column(name = "points_balance", nullable = false)
+    @Column(name = "points", nullable = false)
     @Builder.Default
     private Integer points = 0;
 

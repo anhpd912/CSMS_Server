@@ -1,10 +1,7 @@
 package com.fu.coffeeshop_management.server.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -14,7 +11,8 @@ import java.util.UUID;
  * Entity representation of the 'order' table.
  * Based on the SDD 'order' table definition.
  */
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -23,7 +21,7 @@ import java.util.UUID;
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id", nullable = false, updatable = false)
+    @Column(name = "id",  nullable = false, updatable = false)
     private UUID id;
 
     @Column(name = "status", length = 50, nullable = false)
@@ -57,13 +55,7 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<OrderDetail> orderDetails;
 
-    // Foreign Key: customer_id -> customer.id
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customer_id")
-    private Customer customer;
-
     // An order has one bill
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
     private Bill bill;
 }
-
