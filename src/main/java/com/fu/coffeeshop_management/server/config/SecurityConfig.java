@@ -40,6 +40,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Allow all requests to the /api/auth/** endpoints (login, register)
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/shifts/**").permitAll()
+                        .requestMatchers("/api/tables/**").permitAll()
+                        .requestMatchers("/api/inventory/**").permitAll()
                         // All other requests must be authenticated
                         .anyRequest().authenticated()
                 )

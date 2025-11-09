@@ -31,10 +31,10 @@ public interface TableInfoRepository extends JpaRepository<TableInfo, UUID> {
     List<TableInfo> findByStatusAndLocation(String status, String location);
     
     /**
-     * Finds tables with sheet count greater than or equal to minimum
+     * Finds tables with seat count greater than or equal to minimum
      */
-    @Query("SELECT t FROM TableInfo t WHERE t.sheetCount >= :minSheetCount")
-    List<TableInfo> findByMinSheetCount(@Param("minSheetCount") Integer minSheetCount);
+    @Query("SELECT t FROM TableInfo t WHERE t.seatCount >= :minSeatCount")
+    List<TableInfo> findByMinSeatCount(@Param("minSeatCount") Integer minSeatCount);
     
     /**
      * Finds available tables by location
@@ -43,10 +43,10 @@ public interface TableInfoRepository extends JpaRepository<TableInfo, UUID> {
     List<TableInfo> findAvailableTablesByLocation(@Param("location") String location);
     
     /**
-     * Finds available tables with minimum sheet count
+     * Finds available tables with minimum seat count
      */
-    @Query("SELECT t FROM TableInfo t WHERE t.status = 'Available' AND t.sheetCount >= :minSheetCount")
-    List<TableInfo> findAvailableTablesWithMinSeats(@Param("minSheetCount") Integer minSheetCount);
+    @Query("SELECT t FROM TableInfo t WHERE t.status = 'Available' AND t.seatCount >= :minSeatCount")
+    List<TableInfo> findAvailableTablesWithMinSeats(@Param("minSeatCount") Integer minSeatCount);
     
     /**
      * Finds table by name
@@ -90,10 +90,10 @@ public interface TableInfoRepository extends JpaRepository<TableInfo, UUID> {
     @Query("SELECT t FROM TableInfo t WHERE " +
            "(:status IS NULL OR t.status = :status) AND " +
            "(:location IS NULL OR t.location = :location) AND " +
-           "(:minSheetCount IS NULL OR t.sheetCount >= :minSheetCount)")
+           "(:minSeatCount IS NULL OR t.seatCount >= :minSeatCount)")
     Page<TableInfo> searchTables(@Param("status") String status,
                                   @Param("location") String location,
-                                  @Param("minSheetCount") Integer minSheetCount,
+                                  @Param("minSeatCount") Integer minSeatCount,
                                   Pageable pageable);
     
     /**
@@ -103,8 +103,8 @@ public interface TableInfoRepository extends JpaRepository<TableInfo, UUID> {
     List<String> findAllLocations();
     
     /**
-     * Gets average sheet count
+     * Gets average seat count
      */
-    @Query("SELECT AVG(t.sheetCount) FROM TableInfo t")
-    Double getAverageSheetCount();
+    @Query("SELECT AVG(t.seatCount) FROM TableInfo t")
+    Double getAverageSeatCount();
 }

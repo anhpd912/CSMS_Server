@@ -45,9 +45,9 @@ public class TableService {
      * Accessible by: Cashier, Waiter, Manager
      */
     @Transactional(readOnly = true)
-    public List<TableResponse> getAllTables(String status, String location, Integer minSheetCount) {
-        log.info("Fetching all tables with filters - status: {}, location: {}, minSheetCount: {}", 
-                 status, location, minSheetCount);
+    public List<TableResponse> getAllTables(String status, String location, Integer minSeatCount) {
+        log.info("Fetching all tables with filters - status: {}, location: {}, minSeatCount: {}", 
+                 status, location, minSeatCount);
 
         List<TableInfo> tables;
 
@@ -58,16 +58,16 @@ public class TableService {
             tables = tableInfoRepository.findByStatus(status);
         } else if (location != null) {
             tables = tableInfoRepository.findByLocation(location);
-        } else if (minSheetCount != null) {
-            tables = tableInfoRepository.findByMinSheetCount(minSheetCount);
+        } else if (minSeatCount != null) {
+            tables = tableInfoRepository.findByMinSeatCount(minSeatCount);
         } else {
             tables = tableInfoRepository.findAll();
         }
 
-        // Apply additional filtering for minSheetCount if needed
-        if (minSheetCount != null && (status != null || location != null)) {
+        // Apply additional filtering for minSeatCount if needed
+        if (minSeatCount != null && (status != null || location != null)) {
             tables = tables.stream()
-                    .filter(t -> t.getSheetCount() >= minSheetCount)
+                    .filter(t -> t.getSeatCount() >= minSeatCount)
                     .collect(Collectors.toList());
         }
 
@@ -82,11 +82,11 @@ public class TableService {
      */
     @Transactional(readOnly = true)
     public Page<TableResponse> getTablesWithPagination(String status, String location, 
-                                                        Integer minSheetCount, Pageable pageable) {
+                                                        Integer minSeatCount, Pageable pageable) {
         log.info("Fetching tables with pagination - page: {}, size: {}", 
                  pageable.getPageNumber(), pageable.getPageSize());
 
-        Page<TableInfo> tables = tableInfoRepository.searchTables(status, location, minSheetCount, pageable);
+        Page<TableInfo> tables = tableInfoRepository.searchTables(status, location, minSeatCount, pageable);
         
         return tables.map(this::mapToTableResponse);
     }
@@ -125,7 +125,7 @@ public class TableService {
         TableInfo table = TableInfo.builder()
                 .name(request.getName())
                 .location(request.getLocation())
-                .sheetCount(request.getSheetCount())
+                .seatCount(request.getSeatCount())
                 .status(request.getStatus() != null ? request.getStatus() : STATUS_AVAILABLE)
                 .build();
 
@@ -158,7 +158,7 @@ public class TableService {
             TableInfo table = TableInfo.builder()
                     .name(request.getName())
                     .location(request.getLocation())
-                    .sheetCount(request.getSheetCount())
+                    .seatCount(request.getSeatCount())
                     .status(request.getStatus() != null ? request.getStatus() : STATUS_AVAILABLE)
                     .build();
             
@@ -197,7 +197,7 @@ public class TableService {
         // Update table fields
         table.setName(request.getName());
         table.setLocation(request.getLocation());
-        table.setSheetCount(request.getSheetCount());
+        table.setSeatCount(request.getSeatCount());
         table.setStatus(request.getStatus());
 
         TableInfo updatedTable = tableInfoRepository.save(table);
@@ -304,10 +304,10 @@ public class TableService {
      * Accessible by: Cashier, Waiter, Manager
      */
     @Transactional(readOnly = true)
-    public List<TableResponse> getAvailableTablesWithMinSeats(Integer minSheetCount) {
-        log.info("Fetching available tables with minimum {} seats", minSheetCount);
+    public List<TableResponse> getAvailableTablesWithMinSeats(Integer minSeatCount) {
+        log.info("Fetching available tables with minimum {} seats", minSeatCount);
 
-        List<TableInfo> tables = tableInfoRepository.findAvailableTablesWithMinSeats(minSheetCount);
+        List<TableInfo> tables = tableInfoRepository.findAvailableTablesWithMinSeats(minSeatCount);
 
         return tables.stream()
                 .map(this::mapToTableResponse)
@@ -340,17 +340,17 @@ public class TableService {
         // Statistics by capacity
         Map<String, Integer> tablesByCapacity = new HashMap<>();
         List<TableInfo> allTables = tableInfoRepository.findAll();
-        tablesByCapacity.put("1-2 seats", (int) allTables.stream().filter(t -> t.getSheetCount() <= 2).count());
-        tablesByCapacity.put("3-4 seats", (int) allTables.stream().filter(t -> t.getSheetCount() >= 3 && t.getSheetCount() <= 4).count());
-        tablesByCapacity.put("5-6 seats", (int) allTables.stream().filter(t -> t.getSheetCount() >= 5 && t.getSheetCount() <= 6).count());
-        tablesByCapacity.put("7+ seats", (int) allTables.stream().filter(t -> t.getSheetCount() >= 7).count());
+        tablesByCapacity.put("1-2 seats", (int) allTables.stream().filter(t -> t.getSeatCount() <= 2).count());
+        tablesByCapacity.put("3-4 seats", (int) allTables.stream().filter(t -> t.getSeatCount() >= 3 && t.getSeatCount() <= 4).count());
+        tablesByCapacity.put("5-6 seats", (int) allTables.stream().filter(t -> t.getSeatCount() >= 5 && t.getSeatCount() <= 6).count());
+        tablesByCapacity.put("7+ seats", (int) allTables.stream().filter(t -> t.getSeatCount() >= 7).count());
 
         // Calculate occupancy rate
         Double occupancyRate = totalTables > 0 ? 
                 (occupiedTables.doubleValue() / totalTables.doubleValue()) * 100 : 0.0;
 
         // Calculate average seats per table
-        Double averageSeatsPerTable = tableInfoRepository.getAverageSheetCount();
+        Double averageSeatsPerTable = tableInfoRepository.getAverageSeatCount();
 
         return TableStatisticsResponse.builder()
                 .totalTables(Math.toIntExact(totalTables))
@@ -409,7 +409,7 @@ public class TableService {
                 .id(table.getId())
                 .name(table.getName())
                 .location(table.getLocation())
-                .sheetCount(table.getSheetCount())
+                .seatCount(table.getSeatCount())
                 .status(table.getStatus())
                 .isAvailable(STATUS_AVAILABLE.equals(table.getStatus()))
                 .currentOrders(0) // TODO: Calculate from actual orders when Order feature is implemented

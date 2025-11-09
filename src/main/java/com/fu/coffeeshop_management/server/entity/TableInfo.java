@@ -32,8 +32,8 @@ public class TableInfo {
     @Column(name = "location", length = 50, nullable = false)
     private String location; // e.g., "Indoor", "Outdoor", "Balcony"
 
-    @Column(name = "sheet_count", nullable = false)
-    private Integer sheetCount;
+    @Column(name = "seat_count", nullable = false)
+    private Integer seatCount;
 
     // --- Relationships ---
 

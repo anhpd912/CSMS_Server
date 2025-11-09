@@ -47,7 +47,7 @@ public class TableController {
      * Query Parameters:
      * - status: Filter by status (Available, Occupied, Reserved)
      * - location: Filter by location (Indoor, Outdoor, Balcony)
-     * - minSheetCount: Filter by minimum seat count
+     * - minSeatCount: Filter by minimum seat count
      * - page: Page number (default: 0)
      * - size: Page size (default: 20)
      * - sort: Sort field and direction (e.g., name,asc)
@@ -58,14 +58,14 @@ public class TableController {
     public ResponseEntity<?> getAllTables(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String location,
-            @RequestParam(required = false) Integer minSheetCount,
+            @RequestParam(required = false) Integer minSeatCount,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "name,asc") String sort,
             Authentication authentication) {
         
-        log.info("GET /api/tables - status: {}, location: {}, minSheetCount: {}, page: {}, size: {}",
-                 status, location, minSheetCount, page, size);
+        log.info("GET /api/tables - status: {}, location: {}, minSeatCount: {}, page: {}, size: {}",
+                 status, location, minSeatCount, page, size);
 
         try {
             // If pagination parameters are provided, use paginated response
@@ -79,12 +79,12 @@ public class TableController {
                 Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
                 
                 Page<TableResponse> tables = tableService.getTablesWithPagination(
-                        status, location, minSheetCount, pageable);
+                        status, location, minSeatCount, pageable);
                 
                 return ResponseEntity.ok(tables);
             } else {
                 // Return simple list without pagination
-                List<TableResponse> tables = tableService.getAllTables(status, location, minSheetCount);
+                List<TableResponse> tables = tableService.getAllTables(status, location, minSeatCount);
                 return ResponseEntity.ok(tables);
             }
         } catch (Exception e) {
@@ -373,18 +373,18 @@ public class TableController {
     @GetMapping("/available")
     public ResponseEntity<?> getAvailableTables(
             @RequestParam(required = false) String location,
-            @RequestParam(required = false) Integer minSheetCount,
+            @RequestParam(required = false) Integer minSeatCount,
             Authentication authentication) {
         
-        log.info("GET /api/tables/available - location: {}, minSheetCount: {}", location, minSheetCount);
+        log.info("GET /api/tables/available - location: {}, minSeatCount: {}", location, minSeatCount);
 
         try {
             List<TableResponse> tables;
             
             if (location != null) {
                 tables = tableService.getAvailableTablesByLocation(location);
-            } else if (minSheetCount != null) {
-                tables = tableService.getAvailableTablesWithMinSeats(minSheetCount);
+            } else if (minSeatCount != null) {
+                tables = tableService.getAvailableTablesWithMinSeats(minSeatCount);
             } else {
                 tables = tableService.getAllTables("Available", null, null);
             }
