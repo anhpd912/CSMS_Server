@@ -1,9 +1,6 @@
 package com.fu.coffeeshop_management.server.service;
 
-import com.fu.coffeeshop_management.server.dto.OrderItemRequestDTO;
-import com.fu.coffeeshop_management.server.dto.OrderRequestDTO;
-import com.fu.coffeeshop_management.server.dto.OrderResponseDTO;
-import com.fu.coffeeshop_management.server.dto.OrderItemResponseDTO;
+import com.fu.coffeeshop_management.server.dto.*;
 import com.fu.coffeeshop_management.server.entity.*;
 import com.fu.coffeeshop_management.server.repository.*;
 import jakarta.persistence.criteria.Predicate;
@@ -212,6 +209,19 @@ public class OrderService {
     }
 
     private OrderResponseDTO convertToDto(Order order) {
+        // Tạo danh sách DTO cho bàn (chứa id và name)
+        List<TableInfoDTO> tableInfoDTOs = order.getTableOrders().stream()
+                .map(tableOrder -> {
+                    TableInfo tableInfo = tableOrder.getTableInfo();
+                    return new TableInfoDTO(tableInfo.getId(), tableInfo.getName());
+                })
+                .collect(Collectors.toList());
+
+        // Trích xuất danh sách tên bàn cho trường cũ
+        List<String> tableNames = tableInfoDTOs.stream()
+                .map(TableInfoDTO::getName)
+                .collect(Collectors.toList());
+
         return OrderResponseDTO.builder()
                 .id(order.getId().toString())
                 .orderDate(order.getCreatedAt().toInstant(ZoneOffset.UTC))
@@ -219,9 +229,8 @@ public class OrderService {
                 .status(order.getStatus())
                 .staffName(order.getStaff() != null ? order.getStaff().getUsername() : "N/A")
                 .note(order.getNote())
-                .tableNames(order.getTableOrders().stream()
-                        .map(tableOrder -> tableOrder.getTableInfo().getName())
-                        .collect(Collectors.toList()))
+                .tableNames(tableNames) // Trường cũ để tương thích
+                .tables(tableInfoDTOs) // Trường mới với đầy đủ thông tin
                 .items(order.getOrderDetails().stream()
                         .map(this::convertDetailToDto)
                         .collect(Collectors.toList()))
