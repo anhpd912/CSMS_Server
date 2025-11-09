@@ -18,7 +18,7 @@ public interface BillRepository extends JpaRepository<Bill, UUID> {
 
     @Query("SELECT b FROM Bill b " +
             "JOIN FETCH b.order o " +
-            "JOIN FETCH o.user " +
+            "JOIN FETCH o.staff " +
             "WHERE b.issuedTime BETWEEN :start AND :end " +
             "ORDER BY b.issuedTime DESC")
     List<Bill> findBillsByDateRangeFetch(

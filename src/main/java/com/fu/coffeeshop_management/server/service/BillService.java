@@ -193,7 +193,7 @@ public class BillService {
 
         // 2. Tải các đối tượng liên quan (LAZY loading)
         Order order = bill.getOrder();
-        User cashier = order.getUser();
+        User cashier = order.getStaff();
         TableInfo table = order.getTable();
         Customer customer = bill.getCustomer(); // Có thể null
         Voucher voucher = bill.getVoucher(); // Có thể null
@@ -308,7 +308,7 @@ public class BillService {
                 .issuedTime(bill.getIssuedTime())
                 .finalAmount(bill.getFinalAmount())
                 .paymentStatus(bill.getPaymentStatus())
-                .cashierName(bill.getOrder().getUser().getFullname()) // Đã được fetch
+                .cashierName(bill.getOrder().getStaff().getFullname()) // Đã được fetch
                 .paymentMethod(paymentMethod)
                 .build();
     }
