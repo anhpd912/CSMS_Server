@@ -11,10 +11,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserResponse {
+public class RoleResponse {
     private UUID id;
-    private String email;
-    private String fullname;
-    private String mobile;
-    private String role; // Exposing role name as a string
+    private String name;
 }
