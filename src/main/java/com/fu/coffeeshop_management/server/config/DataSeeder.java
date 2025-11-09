@@ -19,9 +19,9 @@ import java.math.BigDecimal;
  * with essential data, like user roles. This is more robust than data.sql.
  */
 @Component
-public class DataSeeder implements CommandLineRunner {
+public class DataSeeder /*implements CommandLineRunner*/ {
 
-    private final RoleRepository roleRepository;
+    /*private final RoleRepository roleRepository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
@@ -157,5 +157,5 @@ public class DataSeeder implements CommandLineRunner {
                 productRepository.save(Product.builder().name("Chicken Nuggets").description("Deep fried chicken nuggets").price(new BigDecimal("45000.00")).imageLink("https://example.com/images/chicken-nuggets.jpg").category(fastFoodCategory).build());
             }
         }
-    }
+    }*/
 }

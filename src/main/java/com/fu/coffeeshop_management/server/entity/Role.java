@@ -1,5 +1,6 @@
 package com.fu.coffeeshop_management.server.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,6 +32,6 @@ public class Role {
 
     // This defines the "other side" of the relationship
     @OneToMany(mappedBy = "role")
+    @JsonManagedReference
     private Set<User> users;
 }
-

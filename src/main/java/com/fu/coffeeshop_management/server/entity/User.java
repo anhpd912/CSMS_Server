@@ -1,5 +1,8 @@
 package com.fu.coffeeshop_management.server.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,6 +28,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Entity
 @Table(name = "`user`") // 'user' is a reserved keyword in SQL, so we use backticks
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class User implements UserDetails {
     @Id
     @GeneratedValue(generator = "UUID")
@@ -46,6 +50,7 @@ public class User implements UserDetails {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id", nullable = false)
+    @JsonBackReference
     private Role role;
 
     @OneToOne(fetch = FetchType.LAZY)
@@ -69,12 +74,12 @@ public class User implements UserDetails {
     }
 
     @Override
-    public boolean isAccountNonLocked() {
+    public boolean isCredentialsNonExpired() {
         return true;
     }
 
     @Override
-    public boolean isCredentialsNonExpired() {
+    public boolean isAccountNonLocked() {
         return true;
     }
 
@@ -83,4 +88,3 @@ public class User implements UserDetails {
         return true;
     }
 }
-

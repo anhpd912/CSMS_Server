@@ -1,5 +1,7 @@
 package com.fu.coffeeshop_management.server.entity;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,6 +15,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Entity
 @Table(name = "payment")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class Payment {
     @Id
     @GeneratedValue(generator = "UUID")
@@ -33,4 +36,3 @@ public class Payment {
     @Column(name = "payment_time", nullable = false)
     private LocalDateTime paymentTime;
 }
-

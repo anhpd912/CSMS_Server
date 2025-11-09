@@ -1,10 +1,9 @@
 package com.fu.coffeeshop_management.server.entity;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
 import java.math.BigDecimal;
@@ -15,12 +14,15 @@ import java.util.UUID;
  * This is a join table for Order and Product.
  * Based on the SDD 'order_detail' table definition.
  */
-@Data
+
 @Builder
+@Getter // Thêm
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "order_detail")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class OrderDetail {
     @Id
     @GeneratedValue(generator = "UUID")
@@ -42,4 +44,3 @@ public class OrderDetail {
     @Column(name = "price", nullable = false, columnDefinition = "DECIMAL(10,2)")
     private BigDecimal price;
 }
-
