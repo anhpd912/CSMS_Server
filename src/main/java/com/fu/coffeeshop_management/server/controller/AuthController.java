@@ -61,13 +61,13 @@ public class AuthController {
 
     // Note: The /logout endpoint is handled by the SecurityConfig filter chain.
     @PutMapping("/change-password")
-    public ResponseEntity<UserResponse> changePassword(@RequestBody @Valid UpdatePassWordRequest request) {
-        return ResponseEntity.ok(authenticationService.changePassword(request));
+    public ResponseEntity<APIResponse<UserResponse>> changePassword(@RequestBody @Valid UpdatePassWordRequest request) {
+        return ResponseEntity.ok(APIResponse.<UserResponse>builder().isSuccess(true).data(authenticationService.changePassword(request)).build());
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<String> resetPassword(@RequestBody @Valid ResetPasswordRequest request) {
+    public ResponseEntity<APIResponse<String>> resetPassword(@RequestBody @Valid ResetPasswordRequest request) {
         authenticationService.resetPassword(request.getEmail());
-        return ResponseEntity.ok("Password reset email sent");
+        return ResponseEntity.ok(APIResponse.<String>builder().isSuccess(true).message("Password reset email sent successfully.").build());
     }
 }
