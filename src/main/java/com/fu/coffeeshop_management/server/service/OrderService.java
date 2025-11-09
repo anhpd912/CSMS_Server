@@ -88,6 +88,12 @@ public class OrderService {
 
         // 2. Cập nhật các trường đơn giản
         orderToUpdate.setNote(request.getNote());
+
+        // Cập nhật status nếu có trong request
+        if (request.getStatus() != null && !request.getStatus().isBlank()) {
+            orderToUpdate.setStatus(request.getStatus());
+        }
+
         User staff = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với ID: " + userId));
         orderToUpdate.setStaff(staff);
@@ -238,8 +244,10 @@ public class OrderService {
     }
 
     private OrderItemResponseDTO convertDetailToDto(OrderDetail detail) {
+        Product product = detail.getProduct();
         return OrderItemResponseDTO.builder()
-                .productName(detail.getProduct().getName())
+                .productId(product.getId().toString())
+                .productName(product.getName())
                 .quantity(detail.getQuantity())
                 .price(detail.getPrice().doubleValue())
                 .build();

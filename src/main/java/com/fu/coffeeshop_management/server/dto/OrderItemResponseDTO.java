@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderItemResponseDTO {
+    private String productId;
     private String productName;
     private int quantity;
     private double price;
