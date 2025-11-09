@@ -1,5 +1,6 @@
 package com.fu.coffeeshop_management.server.controller;
 
+import com.fu.coffeeshop_management.server.dto.APIResponse;
 import com.fu.coffeeshop_management.server.dto.ProductCreateRequest;
 import com.fu.coffeeshop_management.server.dto.ProductResponse;
 import com.fu.coffeeshop_management.server.dto.ProductUpdateRequest;
@@ -26,8 +27,8 @@ public class ProductController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ProductResponse>> getProducts(@RequestParam @Nullable String category, @Nullable @RequestParam String status) {
-        return ResponseEntity.ok(productService.getAllWithFilters(category, status));
+    public ResponseEntity<List<ProductResponse>> getProducts(@RequestParam @Nullable String category, @RequestParam @Nullable String keyword) {
+        return ResponseEntity.ok(productService.getAllWithFilters(category, keyword));
     }
 
     @PostMapping("/add")
@@ -53,5 +54,11 @@ public class ProductController {
         }
 
         return ResponseEntity.ok(productService.updateProduct(productId, product, newImageUrl));
+    }
+
+    @PutMapping("/update-status/{productId}")
+    public ResponseEntity<APIResponse> updateStatusProduct(@PathVariable UUID productId, @RequestParam Boolean status) {
+        productService.updateStatusProduct(productId, status);
+        return ResponseEntity.ok(APIResponse.builder().isSuccess(true).message("Status updated successfully").build());
     }
 }
