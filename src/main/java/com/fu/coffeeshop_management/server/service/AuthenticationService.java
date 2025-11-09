@@ -12,8 +12,10 @@ import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -92,7 +94,6 @@ public class AuthenticationService {
      * @return An AuthenticationResponse with a new JWT.
      */
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
-        // This will trigger the authentication provider to check the password
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -100,6 +101,10 @@ public class AuthenticationService {
                             request.getPassword()
                     )
             );
+        } catch (UsernameNotFoundException e) {
+            throw new IllegalArgumentException("User not found");
+        } catch (BadCredentialsException e) {
+            throw new IllegalArgumentException("Invalid password");
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid email or password");
         }

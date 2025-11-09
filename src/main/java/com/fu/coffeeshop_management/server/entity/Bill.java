@@ -1,5 +1,7 @@
 package com.fu.coffeeshop_management.server.entity;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
@@ -20,6 +22,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Entity
 @Table(name = "bill")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class Bill {
     @Id
     @GeneratedValue(generator = "UUID")
@@ -63,4 +66,3 @@ public class Bill {
     @OneToMany(mappedBy = "bill", fetch = FetchType.LAZY)
     private List<BillPayment> billPayments;
 }
-

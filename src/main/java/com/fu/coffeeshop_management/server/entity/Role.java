@@ -1,5 +1,6 @@
 package com.fu.coffeeshop_management.server.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,5 +29,6 @@ public class Role {
     private String name;
 
     @OneToMany(mappedBy = "role")
+    @JsonManagedReference
     private Set<User> users;
 }

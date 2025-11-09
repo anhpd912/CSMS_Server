@@ -1,5 +1,7 @@
 package com.fu.coffeeshop_management.server.entity;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
@@ -12,13 +14,15 @@ import java.util.UUID;
  * This is a join table for Order and Product.
  * Based on the SDD 'order_detail' table definition.
  */
-@Getter
-@Setter
+
 @Builder
+@Getter // Thêm
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "order_detail")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class OrderDetail {
     @Id
     @GeneratedValue(generator = "UUID")
@@ -40,4 +44,3 @@ public class OrderDetail {
     @Column(name = "price", nullable = false, columnDefinition = "DECIMAL(10,2)")
     private BigDecimal price;
 }
-

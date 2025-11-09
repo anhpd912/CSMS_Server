@@ -1,6 +1,7 @@
 package com.fu.coffeeshop_management.server.service;
 
-import com.fu.coffeeshop_management.server.dto.CategoryResponse;
+import com.fu.coffeeshop_management.server.dto.CategoryDTO;
+import com.fu.coffeeshop_management.server.entity.Category;
 import com.fu.coffeeshop_management.server.repository.CategoryRepository;
 import org.springframework.stereotype.Service;
 
@@ -8,13 +9,18 @@ import java.util.List;
 
 @Service
 public class CategoryService {
-    private final CategoryRepository categoryRepository;
+    private final CategoryRepository repo;
 
-    public CategoryService(CategoryRepository categoryRepository) {
-        this.categoryRepository = categoryRepository;
+    public CategoryService(CategoryRepository repo) { this.repo = repo; }
+
+    public List<CategoryDTO> listAll() {
+        return repo.findAll().stream()
+                .map(this::toDTO)
+                .toList();
     }
 
-    public List<CategoryResponse> getAll() {
-        return categoryRepository.findAll().stream().map(category -> new CategoryResponse(category.getName(), category.getDescription())).toList();
+    private CategoryDTO toDTO(Category c) {
+        String idStr = (c.getId() == null) ? null : c.getId().toString();
+        return new CategoryDTO(idStr, c.getName());
     }
 }

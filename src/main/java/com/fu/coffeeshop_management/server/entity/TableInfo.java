@@ -1,8 +1,11 @@
 package com.fu.coffeeshop_management.server.entity;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 /**
@@ -16,10 +19,11 @@ import java.util.UUID;
 @AllArgsConstructor
 @Entity
 @Table(name = "table_info")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class TableInfo {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id", length = 16, nullable = false, updatable = false)
+    @Column(name = "id", length = 36, nullable = false, updatable = false)
     private UUID id;
 
     @Column(name = "name", length = 50, nullable = false)
@@ -41,6 +45,7 @@ public class TableInfo {
     private Set<Reservation> reservations;
 
     // A table can have many orders
-    @OneToMany(mappedBy = "table")
-    private Set<Order> orders;
+    @OneToMany(mappedBy = "tableInfo", fetch = FetchType.LAZY)
+    @Builder.Default
+    private Set<TableOrder> tableOrders = new HashSet<>();
 }

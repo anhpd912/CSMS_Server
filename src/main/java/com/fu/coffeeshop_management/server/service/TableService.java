@@ -14,12 +14,18 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Service layer for Table Management operations
+ * Handles business logic for table CRUD operations
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class TableInfoService {
+public class TableService {
+
     private final TableInfoRepository tableInfoRepository;
 
+    // Status constants
     private static final String STATUS_AVAILABLE = "Available";
     private static final String STATUS_OCCUPIED = "Occupied";
     private static final String STATUS_RESERVED = "Reserved";
@@ -34,35 +40,14 @@ public class TableInfoService {
     private static final String ROLE_WAITER = "WAITER";
     private static final String ROLE_MANAGER = "MANAGER";
 
-    public List<TableInfoDTO> listTables(String status, String keyword) {
-
-        boolean hasStatus = (status != null && !status.isBlank());
-        boolean hasKeyword = (keyword != null && !keyword.isBlank());
-
-        List<TableInfo> tables;
-        if (hasStatus && hasKeyword) {
-            tables = tableInfoRepository.findByStatusIgnoreCaseAndNameContainingIgnoreCase(status, keyword);
-        }
-        else if (hasStatus) {
-            tables = tableInfoRepository.findByStatusIgnoreCase(status);
-        }
-        else if (hasKeyword) {
-            tables = tableInfoRepository.findByNameContainingIgnoreCase(keyword);
-        }
-        else {
-            tables = tableInfoRepository.findAll();
-        }
-        return tables.stream().map(this::mapToTableInfoDTO).collect(Collectors.toList());
-    }
-
     /**
      * Get all tables with optional filtering
      * Accessible by: Cashier, Waiter, Manager
      */
     @Transactional(readOnly = true)
     public List<TableResponse> getAllTables(String status, String location, Integer minSheetCount) {
-        log.info("Fetching all tables with filters - status: {}, location: {}, minSheetCount: {}",
-                status, location, minSheetCount);
+        log.info("Fetching all tables with filters - status: {}, location: {}, minSheetCount: {}", 
+                 status, location, minSheetCount);
 
         List<TableInfo> tables;
 
@@ -96,13 +81,13 @@ public class TableInfoService {
      * Accessible by: Cashier, Waiter, Manager
      */
     @Transactional(readOnly = true)
-    public Page<TableResponse> getTablesWithPagination(String status, String location,
-                                                       Integer minSheetCount, Pageable pageable) {
-        log.info("Fetching tables with pagination - page: {}, size: {}",
-                pageable.getPageNumber(), pageable.getPageSize());
+    public Page<TableResponse> getTablesWithPagination(String status, String location, 
+                                                        Integer minSheetCount, Pageable pageable) {
+        log.info("Fetching tables with pagination - page: {}, size: {}", 
+                 pageable.getPageNumber(), pageable.getPageSize());
 
         Page<TableInfo> tables = tableInfoRepository.searchTables(status, location, minSheetCount, pageable);
-
+        
         return tables.map(this::mapToTableResponse);
     }
 
@@ -115,7 +100,7 @@ public class TableInfoService {
         log.info("Fetching table by ID: {}", tableId);
 
         TableInfo table = tableInfoRepository.findById(tableId)
-                .orElseThrow(() -> new TableService.ResourceNotFoundException("Table not found with ID: " + tableId));
+                .orElseThrow(() -> new ResourceNotFoundException("Table not found with ID: " + tableId));
 
         return mapToTableResponse(table);
     }
@@ -162,7 +147,7 @@ public class TableInfoService {
         validateManagerPermission(currentUser);
 
         List<TableInfo> tables = new ArrayList<>();
-
+        
         for (CreateTableRequest request : requests) {
             // Validate unique table name
             if (tableInfoRepository.existsByName(request.getName())) {
@@ -176,7 +161,7 @@ public class TableInfoService {
                     .seat_count(request.getSheetCount())
                     .status(request.getStatus() != null ? request.getStatus() : STATUS_AVAILABLE)
                     .build();
-
+            
             tables.add(table);
         }
 
@@ -201,11 +186,11 @@ public class TableInfoService {
 
         // Find existing table
         TableInfo table = tableInfoRepository.findById(tableId)
-                .orElseThrow(() -> new TableService.ResourceNotFoundException("Table not found with ID: " + tableId));
+                .orElseThrow(() -> new ResourceNotFoundException("Table not found with ID: " + tableId));
 
         // Check if name is being changed and if new name already exists
-        if (!table.getName().equals(request.getName()) &&
-                tableInfoRepository.existsByName(request.getName())) {
+        if (!table.getName().equals(request.getName()) && 
+            tableInfoRepository.existsByName(request.getName())) {
             throw new IllegalArgumentException("Table with name '" + request.getName() + "' already exists");
         }
 
@@ -238,7 +223,7 @@ public class TableInfoService {
         }
 
         TableInfo table = tableInfoRepository.findById(tableId)
-                .orElseThrow(() -> new TableService.ResourceNotFoundException("Table not found with ID: " + tableId));
+                .orElseThrow(() -> new ResourceNotFoundException("Table not found with ID: " + tableId));
 
         table.setStatus(status);
         TableInfo updatedTable = tableInfoRepository.save(table);
@@ -264,7 +249,7 @@ public class TableInfoService {
         }
 
         List<TableInfo> tables = tableInfoRepository.findByLocation(location);
-
+        
         for (TableInfo table : tables) {
             table.setStatus(status);
         }
@@ -288,7 +273,7 @@ public class TableInfoService {
 
         // Check if table exists
         TableInfo table = tableInfoRepository.findById(tableId)
-                .orElseThrow(() -> new TableService.ResourceNotFoundException("Table not found with ID: " + tableId));
+                .orElseThrow(() -> new ResourceNotFoundException("Table not found with ID: " + tableId));
 
         // Check if table is occupied (business rule: cannot delete occupied tables)
         if (STATUS_OCCUPIED.equals(table.getStatus())) {
@@ -361,7 +346,7 @@ public class TableInfoService {
         tablesByCapacity.put("7+ seats", (int) allTables.stream().filter(t -> t.getSeat_count() >= 7).count());
 
         // Calculate occupancy rate
-        Double occupancyRate = totalTables > 0 ?
+        Double occupancyRate = totalTables > 0 ? 
                 (occupiedTables.doubleValue() / totalTables.doubleValue()) * 100 : 0.0;
 
         // Calculate average seats per table
@@ -384,50 +369,40 @@ public class TableInfoService {
     private void validateCreatePermission(User user) {
         String role = user.getRole().getName();
         if (!ROLE_WAITER.equals(role) && !ROLE_MANAGER.equals(role)) {
-            throw new TableService.UnauthorizedException("Only Waiters and Managers can create tables");
+            throw new UnauthorizedException("Only Waiters and Managers can create tables");
         }
     }
 
     private void validateUpdatePermission(User user) {
         String role = user.getRole().getName();
         if (!ROLE_WAITER.equals(role) && !ROLE_MANAGER.equals(role)) {
-            throw new TableService.UnauthorizedException("Only Waiters and Managers can update tables");
+            throw new UnauthorizedException("Only Waiters and Managers can update tables");
         }
     }
 
     private void validateDeletePermission(User user) {
         String role = user.getRole().getName();
         if (!ROLE_MANAGER.equals(role)) {
-            throw new TableService.UnauthorizedException("Only Managers can delete tables");
+            throw new UnauthorizedException("Only Managers can delete tables");
         }
     }
 
     private void validateManagerPermission(User user) {
         String role = user.getRole().getName();
         if (!ROLE_MANAGER.equals(role)) {
-            throw new TableService.UnauthorizedException("Only Managers can access this resource");
+            throw new UnauthorizedException("Only Managers can access this resource");
         }
     }
 
     // ============= Validation Helper Methods =============
 
     private boolean isValidStatus(String status) {
-        return STATUS_AVAILABLE.equals(status) ||
-                STATUS_OCCUPIED.equals(status) ||
-                STATUS_RESERVED.equals(status);
+        return STATUS_AVAILABLE.equals(status) || 
+               STATUS_OCCUPIED.equals(status) || 
+               STATUS_RESERVED.equals(status);
     }
 
     // ============= Mapping Helper Methods =============
-
-    private TableInfoDTO mapToTableInfoDTO(TableInfo table) {
-        return TableInfoDTO.builder()
-                .id(table.getId())
-                .name(table.getName())
-                .location(table.getLocation())
-                .seat_count(table.getSeat_count())
-                .status(table.getStatus())
-                .build();
-    }
 
     private TableResponse mapToTableResponse(TableInfo table) {
         return TableResponse.builder()

@@ -1,0 +1,31 @@
+package com.fu.coffeeshop_management.server.dto;
+
+public class OrderItemRequestDTO {
+
+    private String productId;
+    private int quantity;
+
+    public OrderItemRequestDTO() {
+    }
+
+    public OrderItemRequestDTO(String productId, int quantity) {
+        this.productId = productId;
+        this.quantity = quantity;
+    }
+
+    public String getProductId() {
+        return productId;
+    }
+
+    public void setProductId(String productId) {
+        this.productId = productId;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+}

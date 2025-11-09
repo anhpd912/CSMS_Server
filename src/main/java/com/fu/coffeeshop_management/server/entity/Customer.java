@@ -1,4 +1,6 @@
 package com.fu.coffeeshop_management.server.entity;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.Getter;
@@ -12,6 +14,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Entity
 @Table(name = "customer")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class Customer {
     @Id
     @GeneratedValue(generator = "UUID")
@@ -32,4 +35,3 @@ public class Customer {
     @JoinColumn(name = "loyalty_id", unique = true)
     private Loyalty loyalty;
 }
-
