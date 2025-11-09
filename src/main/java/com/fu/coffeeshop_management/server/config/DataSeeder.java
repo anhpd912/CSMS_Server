@@ -1,5 +1,7 @@
 package com.fu.coffeeshop_management.server.config;
 
+import com.fu.coffeeshop_management.server.entity.*;
+import com.fu.coffeeshop_management.server.repository.*;
 import com.fu.coffeeshop_management.server.entity.Category;
 import com.fu.coffeeshop_management.server.entity.Role;
 import com.fu.coffeeshop_management.server.entity.Product;
@@ -12,6 +14,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.math.BigDecimal;
 
 /**
@@ -24,14 +27,18 @@ public class DataSeeder implements CommandLineRunner {
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
+    private final TableInfoRepository tableInfoRepository;
+    private final ReservationRepository reservationRepository;
     private final ProductRepository productRepository;
 
 
-    public DataSeeder(RoleRepository roleRepository, UserRepository userRepository, CategoryRepository categoryRepository, ProductRepository productRepository) {
+    public DataSeeder(RoleRepository roleRepository, UserRepository userRepository, CategoryRepository categoryRepository, TableInfoRepository tableInfoRepository, ProductRepository productRepository, ReservationRepository reservationRepository) {
         this.roleRepository = roleRepository;
         this.userRepository = userRepository;
         this.categoryRepository = categoryRepository;
+        this.tableInfoRepository = tableInfoRepository;
         this.productRepository = productRepository;
+        this.reservationRepository = reservationRepository;
     }
 
     @Override
@@ -39,6 +46,8 @@ public class DataSeeder implements CommandLineRunner {
         seedRoles();
         seedManager();
         seedCategoryProduct();
+//        seedTableInfo();
+//        seedReservation();
         seedProducts();
     }
 
