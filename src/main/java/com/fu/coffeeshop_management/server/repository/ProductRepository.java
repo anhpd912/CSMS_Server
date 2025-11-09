@@ -24,6 +24,9 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
      */
     List<Product> findByCategoryNameAndStatus(String categoryName, String status);
 
+    @Query("SELECT p FROM Product p JOIN FETCH p.category c WHERE c.name = :categoryName AND p.name LIKE %:keyword%")
+    List<Product> findByCategoryNameAndKeyword(String categoryName, String keyword);
+
     List<Product> findAllByName(String name);
 
     /**
@@ -49,5 +52,10 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
     @Query("SELECT p FROM Product p JOIN FETCH p.category c WHERE c.name = 'Ingredient' AND LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%'))")
     List<Product> searchIngredientsByName(@Param("name") String name);
 
+
+    @Query("SELECT p FROM Product p WHERE p.name LIKE %:keyword%")
+    List<Product> findByKeyword(String keyword);
+
     Optional<Product> findByName(String name);
+
 }
