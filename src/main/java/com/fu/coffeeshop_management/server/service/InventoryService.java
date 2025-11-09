@@ -72,8 +72,7 @@ public class InventoryService {
 
         // Create initial stock record
         Stock stock = Stock.builder()
-                .productId(savedProduct.getId())
-                .product(savedProduct)
+                .product(savedProduct)  // @MapsId will use product's ID automatically
                 .quantityInStock(0)
                 .reorderLevel(request.getReorderLevel() != null ? request.getReorderLevel() : 10)
                 .build();
@@ -382,6 +381,6 @@ public class InventoryService {
     }
 
     private boolean hasRole(User user, String roleName) {
-        return user.getRole() != null && user.getRole().getName().equals("ROLE_" + roleName);
+        return user.getRole() != null && user.getRole().getName().equals(roleName);
     }
 }
