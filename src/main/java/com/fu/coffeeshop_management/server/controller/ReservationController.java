@@ -1,6 +1,6 @@
 package com.fu.coffeeshop_management.server.controller;
 
-import com.fu.coffeeshop_management.server.entity.Reservation;
+import com.fu.coffeeshop_management.server.dto.ReservationDTO; // Import ReservationDTO
 import com.fu.coffeeshop_management.server.service.ReservationService;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,12 +18,12 @@ public class ReservationController {
     }
 
     @GetMapping
-    public List<Reservation> listReservations() {
+    public List<ReservationDTO> listReservations() { // Changed return type to List<ReservationDTO>
         return service.listReservations();
     }
 
     @GetMapping("/table/{tableId}") // New endpoint for reservations by table
-    public List<Reservation> listReservationsByTable(@PathVariable UUID tableId) {
+    public List<ReservationDTO> listReservationsByTable(@PathVariable UUID tableId) { // Changed return type to List<ReservationDTO>
         return service.listReservationsByTable(tableId);
     }
 }
