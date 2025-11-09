@@ -1,10 +1,7 @@
 package com.fu.coffeeshop_management.server.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -14,7 +11,8 @@ import java.util.UUID;
  * Entity representation of the 'bill_payment' table.
  * Based on the SDD 'bill_payment' table definition.
  */
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -23,7 +21,7 @@ import java.util.UUID;
 public class BillPayment {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id", length = 36, nullable = false, updatable = false)
+    @Column(name = "id", nullable = false, updatable = false)
     private UUID id;
 
     @Column(name = "payment_method", length = 50, nullable = false)
@@ -36,9 +34,6 @@ public class BillPayment {
     @Builder.Default
     private LocalDateTime paidAt = LocalDateTime.now();
 
-    // --- Relationships ---
-
-    // Foreign Key: bill_id -> bill.id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bill_id", nullable = false)
     private Bill bill;

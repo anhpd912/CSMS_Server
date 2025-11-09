@@ -22,7 +22,7 @@ import java.util.UUID;
 public class Reservation {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id", length = 36, nullable = false, updatable = false)
+    @Column(name = "id",  nullable = false, updatable = false)
     private UUID id;
 
     @Column(name = "customer_name", length = 100, nullable = false)

@@ -16,6 +16,8 @@ import java.util.UUID;
 public interface CustomerRepository extends JpaRepository<Customer, UUID> {
     Optional<Customer> findByPhone(String phone);
 
+    boolean existsByPhone(String phone);
+
     @Query("""
         select new com.fu.coffeeshop_management.server.dto.LoyaltyMemberListItem(
             c.id, c.fullName, c.phone, c.email, l.loyaltyId, l.points, l.tier

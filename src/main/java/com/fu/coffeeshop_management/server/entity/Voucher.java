@@ -11,7 +11,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
-@Data
 @NoArgsConstructor
 @Entity
 @Table(name = "voucher")

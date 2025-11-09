@@ -1,10 +1,7 @@
 package com.fu.coffeeshop_management.server.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
 import java.math.BigDecimal;
@@ -15,7 +12,8 @@ import java.util.UUID;
  * This is a join table for Order and Product.
  * Based on the SDD 'order_detail' table definition.
  */
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

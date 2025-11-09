@@ -1,14 +1,13 @@
 package com.fu.coffeeshop_management.server.service;
 
-import com.fu.coffeeshop_management.server.dto.LoyaltyMemberDetailResponse;
-import com.fu.coffeeshop_management.server.dto.LoyaltyMemberListItem;
-import com.fu.coffeeshop_management.server.dto.PointsHistoryItem;
-import com.fu.coffeeshop_management.server.dto.UpdateLoyaltyMemberRequest;
+import com.fu.coffeeshop_management.server.dto.*;
 import com.fu.coffeeshop_management.server.entity.Customer;
+import com.fu.coffeeshop_management.server.entity.Loyalty;
 import com.fu.coffeeshop_management.server.exception.BadRequestException;
 import com.fu.coffeeshop_management.server.exception.ConflictException;
 import com.fu.coffeeshop_management.server.exception.NotFoundException;
 import com.fu.coffeeshop_management.server.repository.CustomerRepository;
+import com.fu.coffeeshop_management.server.repository.LoyaltyRepository;
 import com.fu.coffeeshop_management.server.repository.LoyaltyTransactionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,7 +23,7 @@ public class LoyaltyService {
 
     private final CustomerRepository customerRepo;
     private final LoyaltyTransactionRepository txRepo;
-
+    private final LoyaltyRepository loyaltyRepository;
 
     private static final Pattern PHONE_RE = Pattern.compile("^[0-9+][0-9]{7,14}$");
     private static final Pattern EMAIL_RE = Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
@@ -48,7 +47,6 @@ public class LoyaltyService {
         Customer c = customerRepo.findById(customerId)
                 .orElseThrow(() -> new NotFoundException("Member not found: " + customerId));
 
-        // fullName
         if (req.fullName() != null) {
             String name = req.fullName().trim();
             if (name.isEmpty()) throw new BadRequestException("Full name must not be empty");
@@ -104,4 +102,46 @@ public class LoyaltyService {
         return txRepo.findHistoryByCustomerId(customerId);
     }
 
+    @Transactional(readOnly = true) // Cần Transactional để load LAZY
+    public CustomerSearchResponse searchCustomerByPhone(String phone) {
+        Customer customer = customerRepo.findByPhone(phone)
+                .orElseThrow(() -> new NotFoundException("Customer not found with phone: " + phone));
+
+        int points = 0;
+        if (customer.getLoyalty() != null) {
+            points = customer.getLoyalty().getPoints();
+        }
+
+        CustomerSearchResponse response = new CustomerSearchResponse();
+        response.setCustomerId(customer.getId());
+        response.setName(customer.getFullName());
+        response.setPhone(customer.getPhone());
+        response.setPoints(points);
+        return response;
+    }
+
+    @Transactional
+    public CustomerSearchResponse addNewMember(NewCustomerRequest request) {
+        if (customerRepo.existsByPhone(request.getPhone())) {
+            throw new ConflictException("Phone number already exists");
+        }
+
+        Loyalty newLoyalty = new Loyalty();
+        newLoyalty.setPoints(0);
+        Loyalty savedLoyalty = loyaltyRepository.save(newLoyalty);
+
+        Customer newCustomer = new Customer();
+        newCustomer.setPhone(request.getPhone());
+        newCustomer.setFullName(request.getName());
+        newCustomer.setLoyalty(savedLoyalty);
+
+        Customer savedCustomer = customerRepo.save(newCustomer);
+
+        CustomerSearchResponse response = new CustomerSearchResponse();
+        response.setCustomerId(savedCustomer.getId());
+        response.setName(savedCustomer.getFullName());
+        response.setPhone(savedCustomer.getPhone());
+        response.setPoints(0);
+        return response;
+    }
 }

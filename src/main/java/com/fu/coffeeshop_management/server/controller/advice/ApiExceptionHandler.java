@@ -5,6 +5,8 @@ import com.fu.coffeeshop_management.server.exception.BadRequestException;
 import com.fu.coffeeshop_management.server.exception.ConflictException;
 import com.fu.coffeeshop_management.server.exception.NotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +16,8 @@ import java.util.*;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(ApiExceptionHandler.class);
 
     record ApiError(Instant timestamp, int status, String error, String message, String path) {}
 
@@ -51,8 +55,15 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleAny(Exception ex, HttpServletRequest req) {
+        log.error("Unhandled Internal Server Error occurred at path: {}", req.getRequestURI(), ex);
+
+        String errorMessage = ex.getMessage();
+        if (errorMessage == null || errorMessage.isBlank()) {
+            errorMessage = ex.getClass().getName();
+        }
+
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                new ApiError(Instant.now(), 500, "Internal Server Error", ex.getMessage(), req.getRequestURI())
+                new ApiError(Instant.now(), 500, "Internal Server Error", errorMessage, req.getRequestURI())
         );
     }
 
