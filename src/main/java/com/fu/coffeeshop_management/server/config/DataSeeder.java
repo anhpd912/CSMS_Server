@@ -1,14 +1,12 @@
 package com.fu.coffeeshop_management.server.config;
 
-import com.fu.coffeeshop_management.server.entity.Category;
-import com.fu.coffeeshop_management.server.entity.Role;
-import com.fu.coffeeshop_management.server.entity.User;
-import com.fu.coffeeshop_management.server.repository.CategoryRepository;
-import com.fu.coffeeshop_management.server.repository.RoleRepository;
-import com.fu.coffeeshop_management.server.repository.UserRepository;
+import com.fu.coffeeshop_management.server.entity.*;
+import com.fu.coffeeshop_management.server.repository.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
+
+import java.time.LocalDateTime;
 
 /**
  * This component runs on application startup and seeds the database
@@ -20,12 +18,16 @@ public class DataSeeder implements CommandLineRunner {
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
+    private final TableInfoRepository tableInfoRepository;
+    private final ReservationRepository reservationRepository;
 
 
-    public DataSeeder(RoleRepository roleRepository, UserRepository userRepository, CategoryRepository categoryRepository) {
+    public DataSeeder(RoleRepository roleRepository, UserRepository userRepository, CategoryRepository categoryRepository, TableInfoRepository tableInfoRepository, ReservationRepository reservationRepository) {
         this.roleRepository = roleRepository;
         this.userRepository = userRepository;
         this.categoryRepository = categoryRepository;
+        this.tableInfoRepository = tableInfoRepository;
+        this.reservationRepository = reservationRepository;
     }
 
     @Override
@@ -33,6 +35,8 @@ public class DataSeeder implements CommandLineRunner {
         seedRoles();
         seedManager();
         seedCategoryProduct();
+//        seedTableInfo();
+//        seedReservation();
     }
 
     private void seedRoles() {
@@ -85,4 +89,70 @@ public class DataSeeder implements CommandLineRunner {
                     .build());
         }
     }
+//
+//    private void seedTableInfo() {
+//        if (tableInfoRepository.("Table 1").isEmpty()) {
+//            tableInfoRepository.save(TableInfo.builder()
+//                    .name("Table 1")
+//                    .status("Available")
+//                    .location("1")
+//                    .sheetCount(4)
+//                    .build());
+//        }
+//
+//        if (tableInfoRepository.findByName("Table 2").isEmpty()) {
+//            tableInfoRepository.save(TableInfo.builder()
+//                    .name("Table 2")
+//                    .status("Available")
+//                    .location("1")
+//                    .sheetCount(4)
+//                    .build());
+//        }
+//
+//        if (tableInfoRepository.findByName("Table 3").isEmpty()) {
+//            tableInfoRepository.save(TableInfo.builder()
+//                    .name("Table 3")
+//                    .status("Available")
+//                    .location("1")
+//                    .sheetCount(4)
+//                    .build());
+//        }
+//    }
+//
+//    private void seedReservation() {
+//        if (reservationRepository.findByCustomerName("Neco").isEmpty()) {
+//            reservationRepository.save(Reservation.builder()
+//                    .customerName("John Doe")
+//                    .customerPhone("0123456789")
+//                    .reservationTime(LocalDateTime.now())
+//                    .numGuests(4)
+//                    .status("Pending")
+//                    .table(tableInfoRepository.findAll().get(0))
+//                    .user(userRepository.findByEmail("manager@coffeeshop.com").get())
+//                    .build());
+//        }
+//
+//        if (reservationRepository.findByTableId(tableInfoRepository.findByName("Table 2").get().getId()).isEmpty()) {
+//            reservationRepository.save(Reservation.builder()
+//                    .customerName("John Doe")
+//                    .customerPhone("0123456789")
+//                    .reservationTime(LocalDateTime.now())
+//                    .numGuests(4)
+//                    .status("Pending")
+//                    .table(tableInfoRepository.findByName("Table 2").get())
+//                    .user(userRepository.findByEmail("manager@coffeeshop.com").get())
+//                    .build());
+//        }
+//
+//        if (reservationRepository.findByTableId(tableInfoRepository.findByName("Table 3").get().getId()).isEmpty()) {
+//            reservationRepository.save(Reservation.builder()
+//                    .customerName("John Doe")
+//                    .customerPhone("0123456789")
+//                    .reservationTime(LocalDateTime.now())
+//                    .numGuests(4)
+//                    .status("Pending")
+//                    .table(tableInfoRepository.findByName("Table 3").get())
+//                    .user(userRepository.findByEmail("manager@coffeeshop.com").get())
+//                    .build());
+//        }
 }

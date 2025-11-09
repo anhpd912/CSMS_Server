@@ -20,20 +20,20 @@ import java.util.UUID;
 public class TableInfo {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id", nullable = false, updatable = false)
+    @Column(name = "id", length = 36, nullable = false, updatable = false)
     private UUID id;
 
     @Column(name = "name", length = 50, nullable = false)
     private String name;
 
+    @Column(name = "location", length = 50, nullable = false)
+    private String location;
+
     @Column(name = "status", length = 50, nullable = false)
     private String status; // e.g., "Available", "Occupied", "Reserved"
 
-    @Column(name = "location", length = 50, nullable = false)
-    private String location; // e.g., "Indoor", "Outdoor", "Balcony"
-
-    @Column(name = "sheet_count", nullable = false)
-    private Integer sheetCount;
+    @Column(name = "seat_count", nullable = false)
+    private Integer seat_count;
 
     // --- Relationships ---
 
@@ -45,4 +45,3 @@ public class TableInfo {
     @OneToMany(mappedBy = "table")
     private Set<Order> orders;
 }
-
