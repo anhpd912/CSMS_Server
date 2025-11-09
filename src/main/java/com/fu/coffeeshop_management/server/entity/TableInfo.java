@@ -32,7 +32,7 @@ public class TableInfo {
     private String status; // e.g., "Available", "Occupied", "Reserved"
 
     @Column(name = "seat_count", nullable = false)
-    private Integer seat_count;
+    private Integer seatCount;
 
     // --- Relationships ---
 

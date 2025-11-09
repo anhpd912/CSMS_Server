@@ -182,13 +182,13 @@ public class DataSeeder implements CommandLineRunner {
 
     private void seedTableInfo() {
         if (tableInfoRepository.findByNameContainingIgnoreCase(TABLE_101_NAME).isEmpty()) {
-            tableInfoRepository.save(TableInfo.builder().name(TABLE_101_NAME).location("Tầng 1 - Gần cửa").status(STATUS_AVAILABLE).seat_count(4).build());
+            tableInfoRepository.save(TableInfo.builder().name(TABLE_101_NAME).location("Tầng 1 - Gần cửa").status(STATUS_AVAILABLE).seatCount(4).build());
         }
         if (tableInfoRepository.findByNameContainingIgnoreCase(TABLE_102_NAME).isEmpty()) {
-            tableInfoRepository.save(TableInfo.builder().name(TABLE_102_NAME).location("Tầng 1 - Trong góc").status(STATUS_AVAILABLE).seat_count(2).build());
+            tableInfoRepository.save(TableInfo.builder().name(TABLE_102_NAME).location("Tầng 1 - Trong góc").status(STATUS_AVAILABLE).seatCount(2).build());
         }
         if (tableInfoRepository.findByNameContainingIgnoreCase(TABLE_201_NAME).isEmpty()) {
-            tableInfoRepository.save(TableInfo.builder().name(TABLE_201_NAME).location("Tầng 2 - Ban công").status(STATUS_AVAILABLE).seat_count(6).build());
+            tableInfoRepository.save(TableInfo.builder().name(TABLE_201_NAME).location("Tầng 2 - Ban công").status(STATUS_AVAILABLE).seatCount(6).build());
         }
     }
 

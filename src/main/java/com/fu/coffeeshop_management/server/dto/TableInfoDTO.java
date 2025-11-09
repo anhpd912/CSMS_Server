@@ -16,6 +16,6 @@ public class TableInfoDTO {
     private String name;
     private String location;
     private String status;
-    private Integer seat_count;
+    private Integer seatCount;
     // Collections like 'reservations' and 'orders' are omitted to prevent serialization issues
 }

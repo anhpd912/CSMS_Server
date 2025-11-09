@@ -22,7 +22,7 @@ public class TableResponse {
     
     private String location;
     
-    private Integer sheetCount;
+    private Integer seatCount;
     
     private String status;
     
