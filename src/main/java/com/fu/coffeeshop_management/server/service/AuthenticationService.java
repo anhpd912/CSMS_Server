@@ -194,5 +194,4 @@ public class AuthenticationService {
             throw new RuntimeException("Error sending email: " + e.getMessage());
         }
     }
-
 }

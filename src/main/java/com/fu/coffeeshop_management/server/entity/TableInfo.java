@@ -1,39 +1,42 @@
 package com.fu.coffeeshop_management.server.entity;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 /**
  * Entity representation of the 'table_info' table.
  * Based on the SDD 'table_info' table definition.
  */
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "table_info")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class TableInfo {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id", nullable = false, updatable = false)
+    @Column(name = "id", length = 16, nullable = false, updatable = false)
     private UUID id;
 
     @Column(name = "name", length = 50, nullable = false)
     private String name;
 
+    @Column(name = "location", length = 50, nullable = false)
+    private String location;
+
     @Column(name = "status", length = 50, nullable = false)
     private String status; // e.g., "Available", "Occupied", "Reserved"
 
-    @Column(name = "location", length = 50, nullable = false)
-    private String location; // e.g., "Indoor", "Outdoor", "Balcony"
-
-    @Column(name = "sheet_count", nullable = false)
-    private Integer sheetCount;
+    @Column(name = "seat_count", nullable = false)
+    private Integer seatCount;
 
     // --- Relationships ---
 
@@ -42,7 +45,8 @@ public class TableInfo {
     private Set<Reservation> reservations;
 
     // A table can have many orders
-    @OneToMany(mappedBy = "table")
-    private Set<Order> orders;
+    @OneToMany(mappedBy = "tableInfo", fetch = FetchType.LAZY)
+    @Builder.Default
+    private Set<TableOrder> tableOrders = new HashSet<>();
 }
 

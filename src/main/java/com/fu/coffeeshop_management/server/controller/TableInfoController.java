@@ -2,7 +2,9 @@ package com.fu.coffeeshop_management.server.controller;
 
 import com.fu.coffeeshop_management.server.dto.*;
 import com.fu.coffeeshop_management.server.entity.User;
-import com.fu.coffeeshop_management.server.service.TableService;
+import com.fu.coffeeshop_management.server.exception.ResourceNotFoundException;
+import com.fu.coffeeshop_management.server.exception.UnauthorizedException;
+import com.fu.coffeeshop_management.server.service.TableInfoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,25 +22,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * REST Controller for Table Management
- * Handles all table-related HTTP requests
- * 
- * Base URL: /api/tables
- * 
- * Access Control:
- * - View List Table: Cashier, Waiter, Manager
- * - Create Table: Waiter, Manager
- * - Update Table: Waiter, Manager
- * - Delete Table: Manager only
- */
 @RestController
 @RequestMapping("/api/tables")
+@CrossOrigin
 @RequiredArgsConstructor
 @Slf4j
-public class TableController {
+public class TableInfoController {
+    private final TableInfoService service;
 
-    private final TableService tableService;
+    @GetMapping
+    public List<TableInfoDTO> listTables(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false, name = "keyword") String keyword
+    ) {
+        return service.listTables(status, keyword);
+    }
 
     /**
      * GET /api/tables
@@ -54,18 +52,18 @@ public class TableController {
      * 
      * Access: Cashier, Waiter, Manager
      */
-    @GetMapping
+    @GetMapping("/manager/all")
     public ResponseEntity<?> getAllTables(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String location,
-            @RequestParam(required = false) Integer minSheetCount,
+            @RequestParam(required = false) Integer minSeatCount,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "name,asc") String sort,
             Authentication authentication) {
         
-        log.info("GET /api/tables - status: {}, location: {}, minSheetCount: {}, page: {}, size: {}",
-                 status, location, minSheetCount, page, size);
+        log.info("GET /api/tables - status: {}, location: {}, minSeatCount: {}, page: {}, size: {}",
+                 status, location, minSeatCount, page, size);
 
         try {
             // If pagination parameters are provided, use paginated response
@@ -78,13 +76,13 @@ public class TableController {
                 
                 Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
                 
-                Page<TableResponse> tables = tableService.getTablesWithPagination(
-                        status, location, minSheetCount, pageable);
+                Page<TableResponse> tables = service.getTablesWithPagination(
+                        status, location, minSeatCount, pageable);
                 
                 return ResponseEntity.ok(tables);
             } else {
                 // Return simple list without pagination
-                List<TableResponse> tables = tableService.getAllTables(status, location, minSheetCount);
+                List<TableResponse> tables = service.getAllTables(status, location, minSeatCount);
                 return ResponseEntity.ok(tables);
             }
         } catch (Exception e) {
@@ -97,7 +95,7 @@ public class TableController {
     /**
      * GET /api/tables/{id}
      * Get single table by ID
-     * 
+     *
      * Access: Cashier, Waiter, Manager
      */
     @GetMapping("/{id}")
@@ -105,9 +103,9 @@ public class TableController {
         log.info("GET /api/tables/{}", id);
 
         try {
-            TableResponse table = tableService.getTableById(id);
+            TableResponse table = service.getTableById(id);
             return ResponseEntity.ok(table);
-        } catch (TableService.ResourceNotFoundException e) {
+        } catch (ResourceNotFoundException e) {
             log.error("Table not found: {}", id);
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(createErrorResponse(e.getMessage()));
@@ -135,10 +133,10 @@ public class TableController {
 
         try {
             User currentUser = (User) authentication.getPrincipal();
-            TableResponse createdTable = tableService.createTable(currentUser, request);
+            TableResponse createdTable = service.createTable(currentUser, request);
             
             return ResponseEntity.status(HttpStatus.CREATED).body(createdTable);
-        } catch (TableService.UnauthorizedException e) {
+        } catch (UnauthorizedException e) {
             log.error("Unauthorized table creation attempt");
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(createErrorResponse(e.getMessage()));
@@ -170,14 +168,14 @@ public class TableController {
 
         try {
             User currentUser = (User) authentication.getPrincipal();
-            List<TableResponse> createdTables = tableService.bulkCreateTables(currentUser, requests);
+            List<TableResponse> createdTables = service.bulkCreateTables(currentUser, requests);
             
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Successfully created " + createdTables.size() + " tables");
             response.put("tables", createdTables);
             
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } catch (TableService.UnauthorizedException e) {
+        } catch (UnauthorizedException e) {
             log.error("Unauthorized bulk table creation attempt");
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(createErrorResponse(e.getMessage()));
@@ -206,14 +204,14 @@ public class TableController {
 
         try {
             User currentUser = (User) authentication.getPrincipal();
-            TableResponse updatedTable = tableService.updateTable(currentUser, id, request);
+            TableResponse updatedTable = service.updateTable(currentUser, id, request);
             
             return ResponseEntity.ok(updatedTable);
-        } catch (TableService.UnauthorizedException e) {
+        } catch (UnauthorizedException e) {
             log.error("Unauthorized table update attempt");
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(createErrorResponse(e.getMessage()));
-        } catch (TableService.ResourceNotFoundException e) {
+        } catch (ResourceNotFoundException e) {
             log.error("Table not found: {}", id);
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(createErrorResponse(e.getMessage()));
@@ -252,14 +250,14 @@ public class TableController {
             }
 
             User currentUser = (User) authentication.getPrincipal();
-            TableResponse updatedTable = tableService.updateTableStatus(currentUser, id, status);
+            TableResponse updatedTable = service.updateTableStatus(currentUser, id, status);
             
             return ResponseEntity.ok(updatedTable);
-        } catch (TableService.UnauthorizedException e) {
+        } catch (UnauthorizedException e) {
             log.error("Unauthorized table status update attempt");
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(createErrorResponse(e.getMessage()));
-        } catch (TableService.ResourceNotFoundException e) {
+        } catch (ResourceNotFoundException e) {
             log.error("Table not found: {}", id);
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(createErrorResponse(e.getMessage()));
@@ -299,14 +297,14 @@ public class TableController {
             }
 
             User currentUser = (User) authentication.getPrincipal();
-            Integer updatedCount = tableService.bulkUpdateTableStatus(currentUser, location, status);
+            Integer updatedCount = service.bulkUpdateTableStatus(currentUser, location, status);
             
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Successfully updated " + updatedCount + " tables");
             response.put("updatedCount", updatedCount);
             
             return ResponseEntity.ok(response);
-        } catch (TableService.UnauthorizedException e) {
+        } catch (UnauthorizedException e) {
             log.error("Unauthorized bulk status update attempt");
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(createErrorResponse(e.getMessage()));
@@ -336,18 +334,18 @@ public class TableController {
 
         try {
             User currentUser = (User) authentication.getPrincipal();
-            tableService.deleteTable(currentUser, id);
+            service.deleteTable(currentUser, id);
             
             Map<String, String> response = new HashMap<>();
             response.put("message", "Table deleted successfully");
             response.put("id", id.toString());
             
             return ResponseEntity.ok(response);
-        } catch (TableService.UnauthorizedException e) {
+        } catch (UnauthorizedException e) {
             log.error("Unauthorized table deletion attempt");
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(createErrorResponse(e.getMessage()));
-        } catch (TableService.ResourceNotFoundException e) {
+        } catch (ResourceNotFoundException e) {
             log.error("Table not found: {}", id);
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(createErrorResponse(e.getMessage()));
@@ -373,20 +371,20 @@ public class TableController {
     @GetMapping("/available")
     public ResponseEntity<?> getAvailableTables(
             @RequestParam(required = false) String location,
-            @RequestParam(required = false) Integer minSheetCount,
+            @RequestParam(required = false) Integer minSeatCount,
             Authentication authentication) {
         
-        log.info("GET /api/tables/available - location: {}, minSheetCount: {}", location, minSheetCount);
+        log.info("GET /api/tables/available - location: {}, minSeatCount: {}", location, minSeatCount);
 
         try {
             List<TableResponse> tables;
             
             if (location != null) {
-                tables = tableService.getAvailableTablesByLocation(location);
-            } else if (minSheetCount != null) {
-                tables = tableService.getAvailableTablesWithMinSeats(minSheetCount);
+                tables = service.getAvailableTablesByLocation(location);
+            } else if (minSeatCount != null) {
+                tables = service.getAvailableTablesWithMinSeats(minSeatCount);
             } else {
-                tables = tableService.getAllTables("Available", null, null);
+                tables = service.getAllTables("Available", null, null);
             }
             
             return ResponseEntity.ok(tables);
@@ -409,10 +407,10 @@ public class TableController {
 
         try {
             User currentUser = (User) authentication.getPrincipal();
-            TableStatisticsResponse statistics = tableService.getTableStatistics(currentUser);
+            TableStatisticsResponse statistics = service.getTableStatistics(currentUser);
             
             return ResponseEntity.ok(statistics);
-        } catch (TableService.UnauthorizedException e) {
+        } catch (UnauthorizedException e) {
             log.error("Unauthorized statistics access attempt");
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(createErrorResponse(e.getMessage()));
@@ -430,4 +428,5 @@ public class TableController {
         error.put("error", message);
         return error;
     }
+
 }
