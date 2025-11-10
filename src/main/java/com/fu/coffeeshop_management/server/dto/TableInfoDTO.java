@@ -17,5 +17,10 @@ public class TableInfoDTO {
     private String location;
     private String status;
     private Integer seat_count;
+
+    public TableInfoDTO(UUID id, String name) {
+        this.id = id;
+        this.name = name;
+    }
     // Collections like 'reservations' and 'orders' are omitted to prevent serialization issues
 }

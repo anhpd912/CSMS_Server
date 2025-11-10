@@ -194,9 +194,17 @@ public class BillService {
         // 2. Tải các đối tượng liên quan (LAZY loading)
         Order order = bill.getOrder();
         User cashier = order.getStaff();
-        TableInfo table = order.getTable();
         Customer customer = bill.getCustomer(); // Có thể null
         Voucher voucher = bill.getVoucher(); // Có thể null
+
+        // --- START: MODIFICATION ---
+        // Lấy thông tin bàn từ bảng trung gian TableOrder
+        String tableName = order.getTableOrders().stream()
+                .findFirst() // Lấy liên kết đầu tiên
+                .map(TableOrder::getTableInfo) // Map tới đối tượng TableInfo
+                .map(TableInfo::getName) // Lấy tên của bàn
+                .orElse("N/A"); // Giá trị mặc định nếu không tìm thấy
+        // --- END: MODIFICATION ---
 
         // 3. Lắp ráp thông tin khách hàng (nếu có)
         BillCustomerDTO customerDTO = null;
@@ -225,7 +233,7 @@ public class BillService {
                 .orderId(order.getId())
                 .issuedTime(bill.getIssuedTime())
                 .paymentStatus(bill.getPaymentStatus())
-                .tableName(table.getName())
+                .tableName(tableName) // <-- Sử dụng biến đã được lấy ở trên
                 .cashierName(cashier.getFullname())
                 .customerInfo(customerDTO) // DTO khách hàng
                 .items(itemDTOs)           // List DTO món

@@ -13,6 +13,12 @@ import java.util.UUID;
 @Repository
 public interface ProductRepository extends JpaRepository<Product, UUID>{
     /**
+     * Finds a product by its exact name.
+     * This is useful for seeding data or finding specific items.
+     */
+    Optional<Product> findByName(String name);
+
+    /**
      * Finds all products belonging to a specific category by its ID.
      */
     List<Product> findByCategoryId(UUID categoryId);
