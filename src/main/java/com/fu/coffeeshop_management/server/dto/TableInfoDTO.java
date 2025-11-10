@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -14,13 +15,13 @@ import java.util.UUID;
 public class TableInfoDTO {
     private UUID id;
     private String name;
-    private String location;
     private String status;
-    private Integer seat_count;
+    private String location;
+    private int seat_count;
+    //private List<SimpleOrderDTO> orders;
 
     public TableInfoDTO(UUID id, String name) {
         this.id = id;
         this.name = name;
     }
-    // Collections like 'reservations' and 'orders' are omitted to prevent serialization issues
 }

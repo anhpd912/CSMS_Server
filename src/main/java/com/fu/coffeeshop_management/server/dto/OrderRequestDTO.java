@@ -8,6 +8,7 @@ public class OrderRequestDTO {
     private List<String> tableIds;
     private List<OrderItemRequestDTO> items;
     private String note;
+    private String status;
 
 
     public OrderRequestDTO() {
@@ -15,10 +16,11 @@ public class OrderRequestDTO {
         this.items = new ArrayList<>();
     }
 
-    public OrderRequestDTO(List<String> tableIds, List<OrderItemRequestDTO> items, String note) {
+    public OrderRequestDTO(List<String> tableIds, List<OrderItemRequestDTO> items, String note, String status) {
         this.tableIds = tableIds;
         this.items = items;
         this.note = note;
+        this.status = status;
     }
 
     public List<String> getTableIds() {
@@ -43,5 +45,13 @@ public class OrderRequestDTO {
 
     public void setNote(String note) {
         this.note = note;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

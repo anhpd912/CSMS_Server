@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -26,10 +27,8 @@ public class OrderController {
     @PostMapping
     public ResponseEntity<?> createOrder(@RequestBody OrderRequestDTO orderRequest, @AuthenticationPrincipal User currentUser) {
         try {
-            // 1. Gọi service, truyền userId thay vì toàn bộ đối tượng User
             orderService.createOrderFromDTO(orderRequest, currentUser.getId());
 
-            // 2. Nếu không có lỗi, tạo và trả về một thông báo thành công đơn giản
             Map<String, Object> response = Map.of(
                 "isSuccess", true,
                 "message", "Tạo đơn hàng thành công"
@@ -37,7 +36,6 @@ public class OrderController {
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
-            // 3. Nếu có lỗi, trả về thông báo lỗi
             String errorMessage = e.getMessage();
             if (errorMessage == null || errorMessage.isEmpty()) {
                 errorMessage = "Đã xảy ra lỗi không xác định trong quá trình tạo đơn hàng. Loại lỗi: " + e.getClass().getSimpleName();
@@ -52,6 +50,39 @@ public class OrderController {
             return ResponseEntity.badRequest().body(errorResponse);
         }
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateOrder(@PathVariable String id, @RequestBody OrderRequestDTO orderRequest, @AuthenticationPrincipal User currentUser) {
+        try {
+            orderService.updateOrder(id, orderRequest, currentUser.getId());
+
+            Map<String, Object> response = Map.of(
+                    "isSuccess", true,
+                    "message", "Cập nhật đơn hàng thành công"
+            );
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            String errorMessage = e.getMessage();
+            if (errorMessage == null || errorMessage.isEmpty()) {
+                errorMessage = "Đã xảy ra lỗi không xác định trong quá trình cập nhật đơn hàng. Loại lỗi: " + e.getClass().getSimpleName();
+            } else {
+                errorMessage = "Lỗi cập nhật đơn hàng: " + errorMessage;
+            }
+            Map<String, Object> errorResponse = Map.of(
+                    "isSuccess", false,
+                    "message", errorMessage
+            );
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<OrderResponseDTO> getOrderById(@PathVariable String id) {
+        OrderResponseDTO order = orderService.getOrderById(id);
+        return ResponseEntity.ok(order);
+    }
+
 
     @GetMapping
     public ResponseEntity<List<OrderResponseDTO>> getOrders(
