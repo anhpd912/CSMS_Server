@@ -7,13 +7,11 @@ import com.fu.coffeeshop_management.server.repository.RoleRepository;
 import com.fu.coffeeshop_management.server.repository.UserRepository;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -115,6 +113,7 @@ public class AuthenticationService {
                 .errorCode("200")
                 .message("Login successful")
                 .token(jwtToken)
+                .role(user.getRole().getName())
                 .build();
     }
 

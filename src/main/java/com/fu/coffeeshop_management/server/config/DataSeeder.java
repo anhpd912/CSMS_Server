@@ -1,8 +1,8 @@
 package com.fu.coffeeshop_management.server.config;
 
 import com.fu.coffeeshop_management.server.entity.Category;
-import com.fu.coffeeshop_management.server.entity.Role;
 import com.fu.coffeeshop_management.server.entity.Product;
+import com.fu.coffeeshop_management.server.entity.Role;
 import com.fu.coffeeshop_management.server.entity.User;
 import com.fu.coffeeshop_management.server.repository.CategoryRepository;
 import com.fu.coffeeshop_management.server.repository.ProductRepository;
@@ -37,7 +37,7 @@ public class DataSeeder implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         seedRoles();
-        seedManager();
+        seedUSer();
         seedCategoryProduct();
         seedProducts();
     }
@@ -54,13 +54,31 @@ public class DataSeeder implements CommandLineRunner {
         }
     }
 
-    private void seedManager() {
+    private void seedUSer() {
         if (userRepository.findByEmail("manager@coffeeshop.com").isEmpty()) {
             userRepository.save(User.builder().email("manager@coffeeshop.com")
                     .password(new BCryptPasswordEncoder().encode("Manager123"))
                     .role(roleRepository.findByName("MANAGER").get())
                     .mobile("0123456780")
                     .fullname("Manager")
+                    .build()
+            );
+        }
+        if (userRepository.findByEmail("cashier@coffeeshop.com").isEmpty()) {
+            userRepository.save(User.builder().email("cashier@coffeeshop.com")
+                    .password(new BCryptPasswordEncoder().encode("Cashier123"))
+                    .role(roleRepository.findByName("CASHIER").get())
+                    .mobile("0123456720")
+                    .fullname("Cashier")
+                    .build()
+            );
+        }
+        if (userRepository.findByEmail("waiter@coffeeshop.com").isEmpty()) {
+            userRepository.save(User.builder().email("waiter@coffeeshop.com")
+                    .password(new BCryptPasswordEncoder().encode("Waiter123"))
+                    .role(roleRepository.findByName("WAITER").get())
+                    .mobile("0123956780")
+                    .fullname("Waiter")
                     .build()
             );
         }
