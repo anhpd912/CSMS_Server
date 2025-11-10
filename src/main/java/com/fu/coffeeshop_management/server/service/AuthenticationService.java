@@ -113,6 +113,7 @@ public class AuthenticationService {
                 .errorCode("200")
                 .message("Login successful")
                 .token(jwtToken)
+                .role(user.getRole().getName())
                 .build();
     }
 

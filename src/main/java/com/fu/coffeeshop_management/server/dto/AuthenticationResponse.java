@@ -17,5 +17,6 @@ public class AuthenticationResponse {
     private Boolean isSuccess;
     private String  message;
     private String  errorCode;
+    private String role;
     private String token;
 }
