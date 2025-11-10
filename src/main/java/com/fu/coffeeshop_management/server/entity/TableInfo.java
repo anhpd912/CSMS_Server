@@ -1,22 +1,25 @@
 package com.fu.coffeeshop_management.server.entity;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 /**
  * Entity representation of the 'table_info' table.
  * Based on the SDD 'table_info' table definition.
  */
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "table_info")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class TableInfo {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -33,7 +36,7 @@ public class TableInfo {
     private String status; // e.g., "Available", "Occupied", "Reserved"
 
     @Column(name = "seat_count", nullable = false)
-    private Integer seat_count;
+    private Integer seatCount;
 
     // --- Relationships ---
 
@@ -42,6 +45,8 @@ public class TableInfo {
     private Set<Reservation> reservations;
 
     // A table can have many orders
-    @OneToMany(mappedBy = "table")
-    private Set<Order> orders;
+    @OneToMany(mappedBy = "tableInfo", fetch = FetchType.LAZY)
+    @Builder.Default
+    private Set<TableOrder> tableOrders = new HashSet<>();
 }
+

@@ -14,8 +14,14 @@ import java.util.UUID;
 public class TableInfoDTO {
     private UUID id;
     private String name;
-    private String location;
     private String status;
-    private Integer seat_count;
-    // Collections like 'reservations' and 'orders' are omitted to prevent serialization issues
+    private String location;
+    private int seatCount;
+    //private List<SimpleOrderDTO> orders;
+
+    // Constructor mới được thêm vào
+    public TableInfoDTO(UUID id, String name) {
+        this.id = id;
+        this.name = name;
+    }
 }

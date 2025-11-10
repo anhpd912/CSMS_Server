@@ -11,7 +11,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface ProductRepository extends JpaRepository<Product, UUID> {
+public interface ProductRepository extends JpaRepository<Product, UUID>{
     /**
      * Finds all products belonging to a specific category by its ID.
      */
@@ -24,6 +24,9 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
      */
     List<Product> findByCategoryNameAndStatus(String categoryName, String status);
 
+    @Query("SELECT p FROM Product p JOIN FETCH p.category c WHERE c.name = :categoryName AND p.name LIKE %:keyword%")
+    List<Product> findByCategoryNameAndKeyword(String categoryName, String keyword);
+
     List<Product> findAllByName(String name);
 
     /**
@@ -31,9 +34,14 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
      */
     List<Product> findByStatus(String status);
 
-    /**
-     * Finds a product by ID with its category and stock eagerly loaded
-     */
+    List<Product> findByStatusIgnoreCase(String status);
+    List<Product> findByStatusIgnoreCaseAndCategoryId(String status, UUID categoryId);
+
+    List<Product> findByNameContainingIgnoreCase(String keyword);
+    List<Product> findByStatusIgnoreCaseAndNameContainingIgnoreCase(String status, String keyword);
+    List<Product> findByCategoryIdAndNameContainingIgnoreCase(UUID categoryId, String keyword);
+    List<Product> findByStatusIgnoreCaseAndCategoryIdAndNameContainingIgnoreCase(String status, UUID categoryId, String keyword);
+
     @Query("SELECT p FROM Product p LEFT JOIN FETCH p.category LEFT JOIN FETCH p.stock WHERE p.id = :id")
     Optional<Product> findByIdWithCategoryAndStock(@Param("id") UUID id);
 
@@ -48,6 +56,22 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
      */
     @Query("SELECT p FROM Product p JOIN FETCH p.category c WHERE c.name = 'Ingredient' AND LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%'))")
     List<Product> searchIngredientsByName(@Param("name") String name);
+
+    @Query("""
+        select p from Product p
+        where (:status     is null or lower(p.status) = lower(:status))
+          and (:categoryId is null or p.category.id   = :categoryId)
+          and (:keyword    is null or lower(p.name) like lower(concat('%', :keyword, '%')))
+        order by p.name asc
+    """)
+    List<Product> listProducts(
+            @Param("status") String status,
+            @Param("categoryId") UUID categoryId,
+            @Param("keyword") String keyword
+    );
+
+    @Query("SELECT p FROM Product p WHERE p.name LIKE %:keyword%")
+    List<Product> findByKeyword(String keyword);
 
     Optional<Product> findByName(String name);
 }
