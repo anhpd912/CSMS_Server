@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -76,5 +77,22 @@ public class UserService {
                 .mobile(user.getMobile())
                 .roleName(user.getRole() != null ? user.getRole().getName() : "N/A")
                 .build();
+    }
+
+    @Transactional
+    public UserResponse updateUser(UUID userId, UserRequest userRequest) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + userId));
+
+        Role role = roleRepository.findById(userRequest.getRoleId())
+                .orElseThrow(() -> new EntityNotFoundException("Role not found with ID: " + userRequest.getRoleId()));
+
+        // Update only the allowed fields. Email and password are ignored for security.
+        user.setFullname(userRequest.getFullname());
+        user.setMobile(userRequest.getMobile());
+        user.setRole(role);
+
+        User updatedUser = userRepository.save(user);
+        return convertToDTO(updatedUser);
     }
 }
