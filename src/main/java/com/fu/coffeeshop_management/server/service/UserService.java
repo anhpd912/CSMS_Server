@@ -53,7 +53,7 @@ public class UserService {
 
         User user = User.builder()
                 .email(userRequest.getEmail())
-                .password(passwordEncoder.encode(userRequest.getPassword()))
+                .password(userRequest.getPassword())
                 .fullname(userRequest.getFullname())
                 .mobile(userRequest.getMobile())
                 .role(role)

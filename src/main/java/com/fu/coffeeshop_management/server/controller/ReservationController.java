@@ -2,9 +2,11 @@ package com.fu.coffeeshop_management.server.controller;
 
 import com.fu.coffeeshop_management.server.dto.ReservationResponse; // Changed to ReservationResponse
 import com.fu.coffeeshop_management.server.dto.ReservationRequest; // Changed to ReservationRequest
+import com.fu.coffeeshop_management.server.entity.User;
 import com.fu.coffeeshop_management.server.service.ReservationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,8 +33,8 @@ public class ReservationController {
     }
 
     @PostMapping
-    public ResponseEntity<ReservationResponse> createReservation(@RequestBody ReservationRequest requestDTO) { // Changed to ReservationRequest and ReservationResponse
-        ReservationResponse newReservation = service.createReservation(requestDTO);
+    public ResponseEntity<ReservationResponse> createReservation(@RequestBody ReservationRequest requestDTO, @AuthenticationPrincipal User currentUser) { // Changed to ReservationRequest and ReservationResponse
+        ReservationResponse newReservation = service.createReservation(requestDTO, currentUser.getId());
         return new ResponseEntity<>(newReservation, HttpStatus.CREATED);
     }
 
