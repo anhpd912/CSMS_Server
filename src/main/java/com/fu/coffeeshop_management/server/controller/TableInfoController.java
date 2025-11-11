@@ -227,6 +227,51 @@ public class TableInfoController {
     }
 
     /**
+     * PUT /api/tables/{id}/status
+     * Update table status only, as requested by the client.
+     * 
+     * Query Parameter: status
+     * 
+     * Access: Waiter, Manager
+     */
+    @PutMapping("/{id}/status")
+    public ResponseEntity<?> updateTableStatusWithPut(
+            @PathVariable UUID id,
+            @RequestParam String status,
+            Authentication authentication) {
+        
+        log.info("PUT /api/tables/{}/status?status={}", id, status);
+
+        try {
+            if (status == null || status.isBlank()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(createErrorResponse("Status is required"));
+            }
+
+            User currentUser = (User) authentication.getPrincipal();
+            TableResponse updatedTable = service.updateTableStatus(currentUser, id, status);
+            
+            return ResponseEntity.ok(updatedTable);
+        } catch (UnauthorizedException e) {
+            log.error("Unauthorized table status update attempt");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(createErrorResponse(e.getMessage()));
+        } catch (ResourceNotFoundException e) {
+            log.error("Table not found: {}", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(createErrorResponse(e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            log.error("Validation error: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(createErrorResponse(e.getMessage()));
+        } catch (Exception e) {
+            log.error("Error updating table status", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(createErrorResponse("Failed to update table status: " + e.getMessage()));
+        }
+    }
+
+    /**
      * PATCH /api/tables/{id}/status
      * Update table status only
      * 

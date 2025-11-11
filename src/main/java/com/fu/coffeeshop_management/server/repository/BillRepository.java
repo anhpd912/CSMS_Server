@@ -25,6 +25,49 @@ public interface BillRepository extends JpaRepository<Bill, UUID> {
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end);
 
+    @Query(value = "SELECT " +
+            "CAST(b.issued_time AS DATE) AS reportDate, " +
+            "SUM(b.final_amount) AS totalRevenue, " +
+            "COUNT(b.id) AS billCount " +
+            "FROM bill b " +
+            "WHERE b.payment_status = 'PAID' " +
+            "AND b.issued_time BETWEEN :startDate AND :endDate " +
+            "GROUP BY reportDate " +
+            "ORDER BY reportDate ASC", nativeQuery = true)
+    List<Object[]> getRevenueReportByDayFromBills(
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate
+    );
+
+    @Query(value = "SELECT " +
+            "YEAR(b.issued_time) as reportYear, " +
+            "MONTH(b.issued_time) as reportMonth, " +
+            "SUM(b.final_amount) AS totalRevenue, " +
+            "COUNT(b.id) AS billCount " +
+            "FROM bill b " +
+            "WHERE b.payment_status = 'PAID' " +
+            "AND b.issued_time BETWEEN :startDate AND :endDate " +
+            "GROUP BY reportYear, reportMonth " +
+            "ORDER BY reportYear ASC, reportMonth ASC", nativeQuery = true)
+    List<Object[]> getRevenueReportByMonthFromBills(
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate
+    );
+
+    @Query(value = "SELECT " +
+            "YEARWEEK(b.issued_time, 1) as reportYearWeek, " +
+            "SUM(b.final_amount) AS totalRevenue, " +
+            "COUNT(b.id) AS billCount " +
+            "FROM bill b " +
+            "WHERE b.payment_status = 'PAID' " +
+            "AND b.issued_time BETWEEN :startDate AND :endDate " +
+            "GROUP BY reportYearWeek " +
+            "ORDER BY reportYearWeek ASC", nativeQuery = true)
+    List<Object[]> getRevenueReportByWeekFromBills(
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate
+    );
+
 
     @Query("select b from Bill b " +
             "left join fetch b.order o " +
