@@ -11,11 +11,14 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Set;
 
+/**
+ * This component runs on application startup and seeds the database
+ * with essential data, like user roles. This is more robust than data.sql.
+ */
 @Component
-public class DataSeeder /*implements CommandLineRunner */{
+public class DataSeeder implements CommandLineRunner {
 
-    // Constants for Role names
-    /*private static final String ROLE_MANAGER = "MANAGER";
+    private static final String ROLE_MANAGER = "MANAGER";
     private static final String ROLE_CASHIER = "CASHIER";
     private static final String ROLE_WAITER = "WAITER";
 
@@ -213,7 +216,7 @@ public class DataSeeder /*implements CommandLineRunner */{
                 .createdAt(LocalDateTime.now().minusMinutes(30))
                 .updatedAt(LocalDateTime.now().minusMinutes(30))
                 .totalPrice(75000.00)
-                .table(table101)
+//                .table(table101)
                 .staff(waiter)
                 .build();
 
@@ -235,7 +238,7 @@ public class DataSeeder /*implements CommandLineRunner */{
                 .createdAt(LocalDateTime.now().minusHours(2))
                 .updatedAt(LocalDateTime.now().minusHours(2))
                 .totalPrice(70000.00)
-                .table(table102)
+//                .table(table102)
                 .staff(waiter)
                 .build();
 
@@ -254,7 +257,7 @@ public class DataSeeder /*implements CommandLineRunner */{
                 .createdAt(LocalDateTime.now().minusDays(1))
                 .updatedAt(LocalDateTime.now().minusDays(1))
                 .totalPrice(48000.00)
-                .table(table101) // Another order on the same table
+//                .table(table101) // Another order on the same table
                 .staff(waiter)
                 .build();
 
@@ -263,5 +266,5 @@ public class DataSeeder /*implements CommandLineRunner */{
 
         order3.setOrderDetails(Set.of(detail31));
         orderRepository.save(order3);
-    }*/
+    }
 }
