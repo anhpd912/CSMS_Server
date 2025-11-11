@@ -37,6 +37,7 @@ public class DataSeeder implements CommandLineRunner {
     // Constants for User emails
     private static final String MANAGER_EMAIL = "manager@coffeeshop.com";
     private static final String WAITER_EMAIL = "waiter@coffeeshop.com";
+    private static final String CASHIER_EMAIL = "cashier@coffeeshop.com";
 
     // Constants for Status
     private static final String STATUS_AVAILABLE = "Available";
@@ -72,6 +73,7 @@ public class DataSeeder implements CommandLineRunner {
         seedRoles();
         seedManager();
         seedWaiter();
+        seedCashier();
         seedCategoryProduct();
         seedProducts();
         seedTableInfo();
@@ -113,6 +115,20 @@ public class DataSeeder implements CommandLineRunner {
                     .role(waiterRole)
                     .mobile("0987654321")
                     .fullname("Nhân Viên Phục Vụ")
+                    .build()
+            );
+        }
+    }
+
+    private void seedCashier() {
+        if (userRepository.findByEmail(WAITER_EMAIL).isEmpty()) {
+            Role cashierRole = roleRepository.findByName(ROLE_CASHIER)
+                    .orElseThrow(() -> new RuntimeException("Cashier role not found!"));
+            userRepository.save(User.builder().email(CASHIER_EMAIL)
+                    .password(new BCryptPasswordEncoder().encode("Cashier123"))
+                    .role(cashierRole)
+                    .mobile("0981782345")
+                    .fullname("Nhân Viên Thu Ngân")
                     .build()
             );
         }
