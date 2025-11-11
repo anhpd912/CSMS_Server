@@ -18,6 +18,4 @@ public class BillResponse {
     private BigDecimal discountAmount;
     private BigDecimal finalTotal;
     private String paymentStatus;
-
-
 }

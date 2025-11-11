@@ -18,15 +18,15 @@ public class UpdateVoucherRequest {
 
     @Pattern(regexp = "^[A-Z0-9_\\-]{3,32}$",
             message = "code chỉ gồm A–Z, 0–9, _ hoặc -, 3–32 ký tự")
-    private String code;                   // optional
+    private String code;
 
-    private VoucherType type;              // optional
+    private VoucherType type;
 
     @Digits(integer = 18, fraction = 2)
     @DecimalMin(value = "0.00", inclusive = false, message = "value phải > 0")
-    private BigDecimal value;              // optional
+    private BigDecimal value;
 
-    private LocalDate startDate;           // optional
-    private LocalDate endDate;             // optional
-    private VoucherStatus status;          // optional
+    private LocalDate startDate;
+    private LocalDate endDate;
+    private VoucherStatus status;
 }

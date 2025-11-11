@@ -27,8 +27,8 @@ public class BillService {
     private final CustomerRepository customerRepository;
     private final VoucherRepository voucherRepository;
     private final BillPaymentRepository billPaymentRepository;
-    private final PaymentRepository paymentRepository;
     private final LoyaltyRepository loyaltyRepository;
+    private final LoyaltyService loyaltyService;
 
     private static final BigDecimal POINT_CONVERSION_RATE = new BigDecimal("1000");
     private static final BigDecimal ONE_HUNDRED = new BigDecimal("100");
@@ -52,34 +52,36 @@ public class BillService {
 
     @Transactional
     public BillResponse generateBill(BillGenerationRequest request) {
-        // 1. Thực hiện tính toán
         CalculationResult result = performCalculation(request);
-
-        // 2. Kiểm tra xem bill đã tồn tại cho order này chưa
         if (billRepository.existsByOrderId(request.getOrderId())) {
             throw new ConflictException("Bill already generated for this order.");
         }
 
-        // 3. (THAY ĐỔI) Không cần tạo Payment nữa.
-        // Tạo và lưu Bill (Dùng entity Bill đã sửa)
         Bill bill = Bill.builder()
                 .order(result.order)
-                .customer(result.customer) // Lưu customer (nếu có)
-                .voucher(result.voucher) // Lưu voucher (nếu có)
-                .subtotal(result.subtotal) // Lưu subtotal
-                .discount(result.totalDiscount) // Lưu tổng giảm giá
-                .pointsRedeemed(result.pointsRedeemed) // Lưu điểm đã dùng
+                .customer(result.customer)
+                .voucher(result.voucher)
+                .subtotal(result.subtotal)
+                .discount(result.totalDiscount)
+                .pointsRedeemed(result.pointsRedeemed)
                 .finalAmount(result.finalTotal)
-                .tax(BigDecimal.ZERO) // Giả định tax = 0
+                .tax(BigDecimal.ZERO)
                 .issuedTime(LocalDateTime.now())
-                .paymentStatus("Pending Payment") // Post-Condition POS-01
+                .paymentStatus("Pending Payment")
                 .build();
 
         Bill savedBill = billRepository.save(bill);
 
-        // (POS-02: Điểm sẽ được trừ ở UC-0205, ở đây chỉ ghi tạm vào bill)
+        Order order = result.order;
+        order.setStatus("COMPLETED");
 
-        // 5. Map sang DTO Response
+        if (order.getTableOrders() != null) {
+            for (TableOrder tableOrder : order.getTableOrders()) {
+                tableOrder.getTableInfo().setStatus("AVAILABLE");
+            }
+        }
+        orderRepository.save(order);
+
         BillResponse response = new BillResponse();
         response.setBillId(savedBill.getId());
         response.setOrderId(savedBill.getOrder().getId());
@@ -96,8 +98,8 @@ public class BillService {
         Order order = orderRepository.findById(request.getOrderId())
                 .orElseThrow(() -> new NotFoundException("Order not found: " + request.getOrderId()));
 
-        if (!"Completed".equalsIgnoreCase(order.getStatus())) {
-            throw new BadRequestException("Order is not 'Completed' and cannot be billed.");
+        if (!"serving".equalsIgnoreCase(order.getStatus())) {
+            throw new BadRequestException("Order is not in 'SERVING' state and cannot be billed.");
         }
 
         Set<OrderDetail> orderDetailsSet = order.getOrderDetails();
@@ -114,12 +116,10 @@ public class BillService {
         Customer customer = null;
         Voucher voucher = null;
 
-        // 3. Xử lý Khách hàng (Step 4)
         if (request.getCustomerPhone() != null && !request.getCustomerPhone().isEmpty()) {
             customer = customerRepository.findByPhone(request.getCustomerPhone()).orElse(null);
         }
 
-        // 4. Xử lý Voucher (Step 5 & AT2) - LOGIC MỚI
         if (request.getVoucherCode() != null && !request.getVoucherCode().isEmpty()) {
             voucher = voucherRepository.findByCode(request.getVoucherCode())
                     .orElseThrow(() -> new BadRequestException("Invalid or expired voucher code."));
@@ -138,27 +138,24 @@ public class BillService {
             if (voucher.getDiscountType() == Voucher.VoucherType.FIXED_AMOUNT) {
                 voucherDiscount = voucher.getDiscountValue();
             } else if (voucher.getDiscountType() == Voucher.VoucherType.PERCENT) {
-                voucherDiscount = subtotal.multiply(voucher.getDiscountValue()).divide(ONE_HUNDRED);
-            }
+                voucherDiscount = subtotal
+                        .multiply(voucher.getDiscountValue())
+                        .divide(ONE_HUNDRED, 2, RoundingMode.HALF_UP);            }
         }
 
-        // 5. Xử lý Điểm (Step 6 & AT3)
         if (customer != null && pointsToRedeem > 0) {
-            // Cần fetch LAZY
             int availablePoints = customer.getLoyalty().getPoints();
             if (pointsToRedeem > availablePoints) {
-                throw new BadRequestException("Not enough points to redeem."); // AT3.1
+                throw new BadRequestException("Not enough points to redeem.");
             }
             pointsDiscount = POINT_CONVERSION_RATE.multiply(new BigDecimal(pointsToRedeem));
         } else {
-            pointsToRedeem = 0; // Đảm bảo là 0 nếu không có khách
+            pointsToRedeem = 0;
         }
 
-        // 6. Tính toán tổng (Step 7)
         BigDecimal totalDiscount = voucherDiscount.add(pointsDiscount);
         BigDecimal finalTotal = subtotal.subtract(totalDiscount);
 
-        // Đảm bảo tổng tiền không bị âm
         finalTotal = finalTotal.max(BigDecimal.ZERO);
 
         return new CalculationResult(order, customer, voucher, subtotal, totalDiscount, finalTotal, pointsToRedeem);
@@ -187,18 +184,20 @@ public class BillService {
     @Transactional(readOnly = true)
     public BillDetailResponse getBillDetails(UUID billId) {
 
-        // 1. Tìm Bill (Xử lý AT1 - Bill Not Found)
         Bill bill = billRepository.findById(billId)
                 .orElseThrow(() -> new NotFoundException("Selected bill no longer exists or was deleted."));
 
-        // 2. Tải các đối tượng liên quan (LAZY loading)
         Order order = bill.getOrder();
         User cashier = order.getStaff();
-        //TableInfo table = order.getTable();
-        Customer customer = bill.getCustomer(); // Có thể null
-        Voucher voucher = bill.getVoucher(); // Có thể null
+        Customer customer = bill.getCustomer();
+        Voucher voucher = bill.getVoucher();
 
-        // 3. Lắp ráp thông tin khách hàng (nếu có)
+        String tableName = order.getTableOrders().stream()
+                .findFirst()
+                .map(TableOrder::getTableInfo)
+                .map(TableInfo::getName)
+                .orElse("N/A");
+
         BillCustomerDTO customerDTO = null;
         if (customer != null) {
             customerDTO = BillCustomerDTO.builder()
@@ -207,49 +206,62 @@ public class BillService {
                     .build();
         }
 
-        // 4. Lắp ráp danh sách món hàng
         List<BillItemDTO> itemDTOs = order.getOrderDetails().stream()
                 .map(this::mapToBillItemDTO)
                 .collect(Collectors.toList());
 
-        // 5. Lắp ráp danh sách thanh toán (nếu có)
-        // (Chúng ta dùng repo riêng để tránh N+1 nếu dùng bill.getBillPayments())
         List<BillPayment> payments = billPaymentRepository.findByBillId(billId);
         List<BillPaymentDTO> paymentDTOs = payments.stream()
                 .map(this::mapToBillPaymentDTO)
                 .collect(Collectors.toList());
 
-        // 6. Xây dựng DTO tổng
         return BillDetailResponse.builder()
                 .billId(bill.getId())
                 .orderId(order.getId())
                 .issuedTime(bill.getIssuedTime())
                 .paymentStatus(bill.getPaymentStatus())
-                //.tableName(table.getName())
+                .tableName(tableName)
                 .cashierName(cashier.getFullname())
-                .customerInfo(customerDTO) // DTO khách hàng
-                .items(itemDTOs)           // List DTO món
+                .customerInfo(customerDTO)
+                .items(itemDTOs)
                 .subtotal(bill.getSubtotal())
                 .totalDiscount(bill.getDiscount())
                 .finalAmount(bill.getFinalAmount())
                 .voucherCode(voucher != null ? voucher.getCode() : null)
                 .pointsRedeemed(bill.getPointsRedeemed())
-                .payments(paymentDTOs)     // List DTO thanh toán
+                .payments(paymentDTOs)
                 .build();
     }
 
-    // --- Các hàm helper private ---
 
     private BillItemDTO mapToBillItemDTO(OrderDetail detail) {
-        BigDecimal price = detail.getPrice();
+        if (detail == null) return null;
+
+        BigDecimal price = Optional.ofNullable(detail.getPrice()).orElse(BigDecimal.ZERO);
         int quantity = detail.getQuantity();
+
+        String productName = null;
+        if (detail.getProduct() != null) {
+            try {
+                productName = detail.getProduct().getName();
+            } catch (org.hibernate.LazyInitializationException lie) {
+                productName = "Unknown";
+            }
+        } else {
+            productName = "Unknown";
+        }
+
+        BigDecimal lineTotal = price.multiply(BigDecimal.valueOf(quantity))
+                .setScale(2, RoundingMode.HALF_UP);
+
         return BillItemDTO.builder()
-                .productName(detail.getProduct().getName()) // Kích hoạt LAZY load Product
+                .productName(productName)
                 .quantity(quantity)
-                .priceAtOrder(price)
-                .lineTotal(price.multiply(BigDecimal.valueOf(quantity)))
+                .priceAtOrder(price.setScale(2, RoundingMode.HALF_UP))
+                .lineTotal(lineTotal)
                 .build();
     }
+
 
     private BillPaymentDTO mapToBillPaymentDTO(BillPayment payment) {
         return BillPaymentDTO.builder()
@@ -261,46 +273,51 @@ public class BillService {
 
     @Transactional(readOnly = true)
     public List<BillSummaryDTO> getBillList(LocalDate date) {
-        // 1. Xác định khoảng thời gian. Mặc định là ngày hôm nay.
-        LocalDate queryDate = (date == null) ? LocalDate.now() : date;
-        LocalDateTime startOfDay = queryDate.atStartOfDay();
-        LocalDateTime endOfDay = queryDate.atTime(LocalTime.MAX);
+        LocalDateTime startOfDay = null;
+        LocalDateTime endOfDay = null;
+        List<Bill> bills;
 
-        // 2. Query 1: Lấy tất cả Bills (với Order và User)
-        List<Bill> bills = billRepository.findBillsByDateRangeFetch(startOfDay, endOfDay);
-
-        // Xử lý AT1: Không tìm thấy hóa đơn
-        if (bills.isEmpty()) {
-            return Collections.emptyList(); // Trả về danh sách rỗng
+        if (date == null) {
+            bills = billRepository.findAllFetch();
+        } else {
+            LocalDate queryDate = date;
+            startOfDay = queryDate.atStartOfDay();
+            endOfDay = queryDate.atTime(LocalTime.MAX);
+            bills = billRepository.findBillsByDateRangeFetch(startOfDay, endOfDay);
         }
 
-        // 3. Tối ưu N+1: Lấy tất cả payment liên quan trong 1 query
+        if (bills == null || bills.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        bills.sort(Comparator.comparing(
+                        Bill::getIssuedTime,
+                        Comparator.nullsLast(Comparator.naturalOrder()))
+                .reversed());
+
         List<UUID> billIds = bills.stream().map(Bill::getId).collect(Collectors.toList());
-        List<BillPayment> payments = billPaymentRepository.findByBillIdIn(billIds);
+        List<BillPayment> payments = billPaymentRepository.findByBill_IdIn(billIds);
 
-        // 4. Nhóm các payment theo billId để tra cứu nhanh
-        Map<UUID, List<BillPayment>> paymentsByBillId = payments.stream()
-                .collect(Collectors.groupingBy(bp -> bp.getBill().getId()));
+        Map<UUID, List<BillPayment>> paymentsByBillId = payments == null
+                ? Collections.emptyMap()
+                : payments.stream().collect(Collectors.groupingBy(bp -> bp.getBill().getId()));
 
-        // 5. Chuyển đổi sang DTO
         return bills.stream()
                 .map(bill -> mapToBillSummaryDTO(bill, paymentsByBillId.get(bill.getId())))
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Hàm helper để chuyển đổi Bill -> BillSummaryDTO
-     */
+
+
     private BillSummaryDTO mapToBillSummaryDTO(Bill bill, List<BillPayment> payments) {
 
-        // Logic nghiệp vụ cho "Payment Method" (Step 3)
         String paymentMethod;
         if (payments == null || payments.isEmpty()) {
-            paymentMethod = "Pending"; // Hoặc N/A
+            paymentMethod = "Pending";
         } else if (payments.size() == 1) {
-            paymentMethod = payments.get(0).getPaymentMethod(); // "Cash", "QR"
+            paymentMethod = payments.get(0).getPaymentMethod();
         } else {
-            paymentMethod = "Multiple"; // Ví dụ: 1 nửa Cash, 1 nửa QR
+            paymentMethod = "Multiple";
         }
 
         return BillSummaryDTO.builder()
@@ -308,7 +325,7 @@ public class BillService {
                 .issuedTime(bill.getIssuedTime())
                 .finalAmount(bill.getFinalAmount())
                 .paymentStatus(bill.getPaymentStatus())
-                .cashierName(bill.getOrder().getStaff().getFullname()) // Đã được fetch
+                .cashierName(bill.getOrder().getStaff().getFullname())
                 .paymentMethod(paymentMethod)
                 .build();
     }
@@ -316,7 +333,6 @@ public class BillService {
     @Transactional
     public PaymentConfirmationResponse confirmPayment(UUID billId, PaymentConfirmationRequest request) {
 
-        // 1. Tải hóa đơn (Step 1) và kiểm tra (PRE-02)
         Bill bill = billRepository.findById(billId)
                 .orElseThrow(() -> new NotFoundException("Bill not found."));
 
@@ -324,27 +340,22 @@ public class BillService {
             throw new ConflictException("This bill is not pending payment. Current status: " + bill.getPaymentStatus());
         }
 
-        // 2. Xử lý Alternative Flow AT2
         if (!"Cash".equalsIgnoreCase(request.getPaymentMethod()) && !"Banking".equalsIgnoreCase(request.getPaymentMethod())) {
-            // (AT2.1)
             throw new BadRequestException("This method is temporarily unavailable.");
         }
 
-        // 3. Xử lý thanh toán (Step 5)
-        // Tạo một record Payment mới
-        Payment newPayment = new Payment();
-        newPayment.setBill(bill);
-        newPayment.setAmount(bill.getFinalAmount()); // Lấy số tiền cuối cùng từ bill
-        newPayment.setMethod(request.getPaymentMethod());
-        newPayment.setPaymentTime(LocalDateTime.now());
+        BillPayment newBillPayment = BillPayment.builder()
+                .bill(bill)
+                .paymentMethod(request.getPaymentMethod())
+                .amount(bill.getFinalAmount())
+                .paidAt(LocalDateTime.now())
+                .build();
 
-        Payment savedPayment = paymentRepository.save(newPayment);
+        BillPayment savedPayment = billPaymentRepository.save(newBillPayment);
 
-        // Cập nhật trạng thái Bill
         bill.setPaymentStatus("Paid");
         billRepository.save(bill);
 
-        // 4. Xử lý điểm Loyalty (Step 6)
         int pointsEarned = 0;
         int pointsSpent = 0;
 
@@ -353,24 +364,21 @@ public class BillService {
             Loyalty loyalty = customer.getLoyalty();
 
             if (loyalty != null) {
-                // 4a. Trừ điểm đã tiêu (lưu ở UC-0301)
                 pointsSpent = bill.getPointsRedeemed();
 
-                // 4b. Cộng điểm vừa kiếm được
-                // (Giả sử tính điểm trên subtotal, trước khi giảm giá)
                 pointsEarned = bill.getSubtotal()
                         .divide(POINT_EARNING_RATE, 0, RoundingMode.FLOOR)
                         .intValue();
 
-                // 4c. Cập nhật tổng điểm
                 int currentPoints = loyalty.getPoints();
                 int newTotalPoints = currentPoints - pointsSpent + pointsEarned;
                 loyalty.setPoints(newTotalPoints);
                 loyaltyRepository.save(loyalty);
+
+                loyaltyService.createLoyaltyTransaction(loyalty, bill.getOrder(), pointsEarned, pointsSpent);
             }
         }
 
-        // 5. Trả về xác nhận (Step 7)
         return PaymentConfirmationResponse.builder()
                 .billId(bill.getId())
                 .paymentId(savedPayment.getId())
