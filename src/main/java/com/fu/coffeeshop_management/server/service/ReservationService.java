@@ -59,11 +59,11 @@ public class ReservationService {
     }
 
     @Transactional
-    public ReservationResponse createReservation(ReservationRequest requestDTO) { // Changed to ReservationRequest and ReservationResponse
+    public ReservationResponse createReservation(ReservationRequest requestDTO, UUID userId) { // Changed to ReservationRequest and ReservationResponse
         TableInfo table = tableInfoRepository.findById(requestDTO.getTableId())
                 .orElseThrow(() -> new EntityNotFoundException("Table not found with ID: " + requestDTO.getTableId()));
 
-        User user = userRepository.findById(requestDTO.getUserId())
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + requestDTO.getUserId()));
 
         Reservation reservation = Reservation.builder()
