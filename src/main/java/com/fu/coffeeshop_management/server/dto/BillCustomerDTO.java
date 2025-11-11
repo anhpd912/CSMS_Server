@@ -6,6 +6,7 @@ import lombok.Data;
 @Data
 @Builder
 public class BillCustomerDTO {
+
     private String customerName;
     private String phone;
 }

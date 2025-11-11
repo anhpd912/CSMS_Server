@@ -28,29 +28,25 @@ public class VoucherService {
 
     @Transactional
     public VoucherResponse create(CreateVoucherRequest req, String actor) {
-        // 1) Uniqueness
         if (repo.existsByCodeIgnoreCase(req.getCode())) {
             throw new ConflictException("Voucher code đã tồn tại: " + req.getCode());
         }
 
-        // 2) Date range
         if (req.getEndDate().isBefore(req.getStartDate())) {
             throw new BadRequestException("endDate phải >= startDate");
         }
 
-        // 3) Value rules
         if (req.getType() == Voucher.VoucherType.PERCENT) {
             if (req.getValue().compareTo(BigDecimal.ZERO) <= 0 ||
                     req.getValue().compareTo(new BigDecimal("100")) > 0) {
                 throw new BadRequestException("PERCENT phải trong khoảng (0, 100]");
             }
-        } else { // FIXED_AMOUNT
+        } else {
             if (req.getValue().compareTo(BigDecimal.ZERO) <= 0) {
                 throw new BadRequestException("FIXED_AMOUNT phải > 0");
             }
         }
 
-        // 4) Map DTO -> Entity
         Voucher v = new Voucher();
         v.setCode(req.getCode());
         v.setDiscountType(req.getType());
@@ -61,7 +57,6 @@ public class VoucherService {
 
         v = repo.saveAndFlush(v);
 
-        // 5) Map Entity -> Response
         VoucherResponse res = new VoucherResponse();
         res.setId(v.getId());
         res.setCode(v.getCode());
@@ -82,7 +77,7 @@ public class VoucherService {
 
         return repo.findAll(VoucherSpecs.filter(codeLike, status, type), sort)
                 .stream()
-                .map(this::toResponse)   // dùng mapper đã có
+                .map(this::toResponse)
                 .toList();
     }
 

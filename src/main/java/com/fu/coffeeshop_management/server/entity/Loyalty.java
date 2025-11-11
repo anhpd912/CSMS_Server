@@ -24,12 +24,8 @@ public class Loyalty {
     private Integer points = 0;
 
     @Column(name = "tier", length = 50)
-    private String tier; // e.g., "Bronze", "Silver", "Gold"
+    private String tier;
 
-    // --- Relationships ---
-
-    // This defines the "other side" of the relationship
-    // A loyalty account is tied to one user.
     @OneToOne(mappedBy = "loyalty")
     private User user;
 }

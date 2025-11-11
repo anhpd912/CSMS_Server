@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 public class PaymentConfirmationRequest {
 
     @NotBlank(message = "Payment method is required.")
-    private String paymentMethod; // "Cash" hoặc "Banking"
+    private String paymentMethod;
 }
 
 

@@ -20,7 +20,7 @@ public class OrderResponseDTO {
     private String status;
     private String staffName;
     private String note;
-    private List<String> tableNames; // Giữ lại để tương thích
-    private List<TableInfoDTO> tables; // Trường mới chứa cả id và name
+    private List<String> tableNames;
+    private List<TableInfoDTO> tables;
     private List<OrderItemResponseDTO> items;
 }
