@@ -201,7 +201,7 @@ public class BillService {
         BillCustomerDTO customerDTO = null;
         if (customer != null) {
             customerDTO = BillCustomerDTO.builder()
-                    .customerName(customer.getFullName())
+                    .name(customer.getFullName())
                     .phone(customer.getPhone())
                     .build();
         }
