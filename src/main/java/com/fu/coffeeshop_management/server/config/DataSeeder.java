@@ -37,6 +37,8 @@ public class DataSeeder implements CommandLineRunner {
     // Constants for User emails
     private static final String MANAGER_EMAIL = "manager@coffeeshop.com";
     private static final String WAITER_EMAIL = "waiter@coffeeshop.com";
+    private static final String CASHIER_EMAIL = "cashier@coffeeshop.com";
+
 
     // Constants for Status
     private static final String STATUS_AVAILABLE = "Available";
@@ -52,12 +54,7 @@ public class DataSeeder implements CommandLineRunner {
     private final ProductRepository productRepository;
     private final OrderRepository orderRepository;
 
-    public DataSeeder(RoleRepository roleRepository,
-                      UserRepository userRepository,
-                      CategoryRepository categoryRepository,
-                      TableInfoRepository tableInfoRepository,
-                      ProductRepository productRepository,
-                      OrderRepository orderRepository) {
+    public DataSeeder(RoleRepository roleRepository, UserRepository userRepository, CategoryRepository categoryRepository, TableInfoRepository tableInfoRepository, ProductRepository productRepository, OrderRepository orderRepository) {
         this.roleRepository = roleRepository;
         this.userRepository = userRepository;
         this.categoryRepository = categoryRepository;
@@ -72,6 +69,7 @@ public class DataSeeder implements CommandLineRunner {
         seedRoles();
         seedManager();
         seedWaiter();
+        seedCashier();
         seedCategoryProduct();
         seedProducts();
         seedTableInfo();
@@ -92,29 +90,22 @@ public class DataSeeder implements CommandLineRunner {
 
     private void seedManager() {
         if (userRepository.findByEmail(MANAGER_EMAIL).isEmpty()) {
-            Role managerRole = roleRepository.findByName(ROLE_MANAGER)
-                    .orElseThrow(() -> new RuntimeException("MANAGER role not found!"));
-            userRepository.save(User.builder().email(MANAGER_EMAIL)
-                    .password(new BCryptPasswordEncoder().encode("Manager123"))
-                    .role(managerRole)
-                    .mobile("0123456780")
-                    .fullname("Manager")
-                    .build()
-            );
+            Role managerRole = roleRepository.findByName(ROLE_MANAGER).orElseThrow(() -> new RuntimeException("MANAGER role not found!"));
+            userRepository.save(User.builder().email(MANAGER_EMAIL).password(new BCryptPasswordEncoder().encode("Manager123")).role(managerRole).mobile("0123456780").fullname("Manager").build());
         }
     }
 
     private void seedWaiter() {
         if (userRepository.findByEmail(WAITER_EMAIL).isEmpty()) {
-            Role waiterRole = roleRepository.findByName(ROLE_WAITER)
-                    .orElseThrow(() -> new RuntimeException("WAITER role not found!"));
-            userRepository.save(User.builder().email(WAITER_EMAIL)
-                    .password(new BCryptPasswordEncoder().encode("Waiter123"))
-                    .role(waiterRole)
-                    .mobile("0987654321")
-                    .fullname("Nhân Viên Phục Vụ")
-                    .build()
-            );
+            Role waiterRole = roleRepository.findByName(ROLE_WAITER).orElseThrow(() -> new RuntimeException("WAITER role not found!"));
+            userRepository.save(User.builder().email(WAITER_EMAIL).password(new BCryptPasswordEncoder().encode("Waiter123")).role(waiterRole).mobile("0987654321").fullname("Nhân Viên Phục Vụ").build());
+        }
+    }
+
+    private void seedCashier() {
+        if (userRepository.findByEmail(CASHIER_EMAIL ).isEmpty()) {
+            Role waiterRole = roleRepository.findByName(ROLE_CASHIER).orElseThrow(() -> new RuntimeException("CASHIER role not found!"));
+            userRepository.save(User.builder().email(CASHIER_EMAIL).password(new BCryptPasswordEncoder().encode("Cashier123")).role(waiterRole).mobile("0987654311").fullname("Nhân viên thu ngân").build());
         }
     }
 
@@ -163,20 +154,9 @@ public class DataSeeder implements CommandLineRunner {
 
     private void saveProductWithStock(String name, String desc, BigDecimal price, String imgLink, Category category, int initialStock) {
         if (productRepository.findByName(name).isEmpty()) {
-            Product product = Product.builder()
-                    .name(name)
-                    .description(desc)
-                    .price(price)
-                    .imageLink(imgLink)
-                    .category(category)
-                    .status(STATUS_ACTIVE)
-                    .build();
+            Product product = Product.builder().name(name).description(desc).price(price).imageLink(imgLink).category(category).status(STATUS_ACTIVE).build();
 
-            Stock stock = Stock.builder()
-                    .product(product)
-                    .quantityInStock(initialStock)
-                    .reorderLevel(10)
-                    .build();
+            Stock stock = Stock.builder().product(product).quantityInStock(initialStock).reorderLevel(10).build();
 
             product.setStock(stock);
             productRepository.save(product);
@@ -211,14 +191,9 @@ public class DataSeeder implements CommandLineRunner {
         Product taroTea = productRepository.findByName("Taro Bubble Tea").orElseThrow(() -> new RuntimeException("Taro Tea not found!"));
 
         // --- Order 1 ---
-        Order order1 = Order.builder()
-                .status(STATUS_PENDING)
-                .createdAt(LocalDateTime.now().minusMinutes(30))
-                .updatedAt(LocalDateTime.now().minusMinutes(30))
-                .totalPrice(75000.00)
+        Order order1 = Order.builder().status(STATUS_PENDING).createdAt(LocalDateTime.now().minusMinutes(30)).updatedAt(LocalDateTime.now().minusMinutes(30)).totalPrice(75000.00)
 //                .table(table101)
-                .staff(waiter)
-                .build();
+                .staff(waiter).build();
 
         OrderDetail detail11 = OrderDetail.builder().product(latte).quantity(1).price(latte.getPrice()).build();
         detail11.setOrder(order1); // <-- FIX: Set back-reference
@@ -233,14 +208,9 @@ public class DataSeeder implements CommandLineRunner {
         tableInfoRepository.save(table101);
 
         // --- Order 2 ---
-        Order order2 = Order.builder()
-                .status(STATUS_PENDING)
-                .createdAt(LocalDateTime.now().minusHours(2))
-                .updatedAt(LocalDateTime.now().minusHours(2))
-                .totalPrice(70000.00)
+        Order order2 = Order.builder().status(STATUS_PENDING).createdAt(LocalDateTime.now().minusHours(2)).updatedAt(LocalDateTime.now().minusHours(2)).totalPrice(70000.00)
 //                .table(table102)
-                .staff(waiter)
-                .build();
+                .staff(waiter).build();
 
         OrderDetail detail21 = OrderDetail.builder().product(espresso).quantity(2).price(espresso.getPrice()).build();
         detail21.setOrder(order2); // <-- FIX: Set back-reference
@@ -252,14 +222,9 @@ public class DataSeeder implements CommandLineRunner {
         tableInfoRepository.save(table102);
 
         // --- Order 3 ---
-        Order order3 = Order.builder()
-                .status(STATUS_PENDING)
-                .createdAt(LocalDateTime.now().minusDays(1))
-                .updatedAt(LocalDateTime.now().minusDays(1))
-                .totalPrice(48000.00)
+        Order order3 = Order.builder().status(STATUS_PENDING).createdAt(LocalDateTime.now().minusDays(1)).updatedAt(LocalDateTime.now().minusDays(1)).totalPrice(48000.00)
 //                .table(table101) // Another order on the same table
-                .staff(waiter)
-                .build();
+                .staff(waiter).build();
 
         OrderDetail detail31 = OrderDetail.builder().product(taroTea).quantity(1).price(taroTea.getPrice()).build();
         detail31.setOrder(order3); // <-- FIX: Set back-reference
