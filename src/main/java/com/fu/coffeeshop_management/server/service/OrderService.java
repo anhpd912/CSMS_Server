@@ -65,7 +65,7 @@ public class OrderService {
             TableInfo table = tableInfoRepository.findById(UUID.fromString(tableId))
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy bàn: " + tableId));
 
-            table.setStatus("SERVING");
+            table.setStatus("OCCUPIED");
             tableInfoRepository.save(table);
 
             TableOrder tableOrderLink = new TableOrder();
@@ -82,14 +82,10 @@ public class OrderService {
     public OrderResponseDTO updateOrder(String orderId, OrderRequestDTO request, UUID userId) {
         UUID orderUUID = UUID.fromString(orderId);
 
-        // 1. Tìm đơn hàng hiện có
         Order orderToUpdate = orderRepository.findById(orderUUID)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng với ID: " + orderId));
 
-        // 2. Cập nhật các trường đơn giản
         orderToUpdate.setNote(request.getNote());
-
-        // Cập nhật status nếu có trong request
         if (request.getStatus() != null && !request.getStatus().isBlank()) {
             orderToUpdate.setStatus(request.getStatus());
         }
@@ -97,26 +93,18 @@ public class OrderService {
         User staff = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với ID: " + userId));
         orderToUpdate.setStaff(staff);
-
-        // 3. Xử lý OrderDetails - THE CORRECT WAY
         updateOrderDetails(orderToUpdate, request.getItems());
 
-        // 5. Lưu đơn hàng đã cập nhật (JPA sẽ tự động xử lý các collection đã được thay thế)
         Order savedOrder = orderRepository.save(orderToUpdate);
 
-        // 6. Trả về DTO
         return convertToDto(savedOrder);
     }
 
     private void updateOrderDetails(Order order, List<OrderItemRequestDTO> itemRequests) {
-        // 1. Xóa các chi tiết cũ một cách rõ ràng
         orderDetailRepository.deleteAllInBatch(order.getOrderDetails());
-
-        // 2. Tạo một collection HOÀN TOÀN MỚI
         Set<OrderDetail> newDetails = new HashSet<>();
         BigDecimal newTotalAmount = BigDecimal.ZERO;
 
-        // 3. Đổ dữ liệu vào collection MỚI
         for (OrderItemRequestDTO itemDto : itemRequests) {
             Product product = productRepository.findById(UUID.fromString(itemDto.getProductId()))
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm: " + itemDto.getProductId()));
@@ -125,17 +113,15 @@ public class OrderService {
             newDetail.setProduct(product);
             newDetail.setQuantity(itemDto.getQuantity());
             newDetail.setPrice(product.getPrice());
-            newDetail.setOrder(order); // Liên kết ngược lại
+            newDetail.setOrder(order);
 
-            newDetails.add(newDetail); // Thêm vào collection MỚI
+            newDetails.add(newDetail);
 
-            // Tính toán tổng tiền
             BigDecimal itemQuantity = new BigDecimal(itemDto.getQuantity());
             BigDecimal itemTotal = product.getPrice().multiply(itemQuantity);
             newTotalAmount = newTotalAmount.add(itemTotal);
         }
 
-        // 4. THAY THẾ collection cũ bằng collection mới và cập nhật tổng tiền
         order.setOrderDetails(newDetails);
         order.setTotalPrice(newTotalAmount.doubleValue());
     }
@@ -180,7 +166,6 @@ public class OrderService {
     }
 
     private OrderResponseDTO convertToDto(Order order) {
-        // Tạo danh sách DTO cho bàn (chứa id và name)
         List<TableInfoDTO> tableInfoDTOs = order.getTableOrders().stream()
                 .map(tableOrder -> {
                     TableInfo tableInfo = tableOrder.getTableInfo();
@@ -188,7 +173,6 @@ public class OrderService {
                 })
                 .collect(Collectors.toList());
 
-        // Trích xuất danh sách tên bàn cho trường cũ
         List<String> tableNames = tableInfoDTOs.stream()
                 .map(TableInfoDTO::getName)
                 .collect(Collectors.toList());
@@ -200,8 +184,8 @@ public class OrderService {
                 .status(order.getStatus())
                 .staffName(order.getStaff() != null ? order.getStaff().getUsername() : "N/A")
                 .note(order.getNote())
-                .tableNames(tableNames) // Trường cũ để tương thích
-                .tables(tableInfoDTOs) // Trường mới với đầy đủ thông tin
+                .tableNames(tableNames)
+                .tables(tableInfoDTOs)
                 .items(order.getOrderDetails().stream()
                         .map(this::convertDetailToDto)
                         .collect(Collectors.toList()))

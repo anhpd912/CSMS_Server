@@ -31,16 +31,16 @@ public class OrderController {
 
             Map<String, Object> response = Map.of(
                 "isSuccess", true,
-                "message", "Tạo đơn hàng thành công"
+                "message", "Create order successfully."
             );
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
             String errorMessage = e.getMessage();
             if (errorMessage == null || errorMessage.isEmpty()) {
-                errorMessage = "Đã xảy ra lỗi không xác định trong quá trình tạo đơn hàng. Loại lỗi: " + e.getClass().getSimpleName();
+                errorMessage = "Undefined error during create order. Type of error: " + e.getClass().getSimpleName();
             } else {
-                errorMessage = "Lỗi tạo đơn hàng: " + errorMessage;
+                errorMessage = "Error in creating order: " + errorMessage;
             }
 
             Map<String, Object> errorResponse = Map.of(
@@ -58,16 +58,16 @@ public class OrderController {
 
             Map<String, Object> response = Map.of(
                     "isSuccess", true,
-                    "message", "Cập nhật đơn hàng thành công"
+                    "message", "Update order successfully."
             );
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
             String errorMessage = e.getMessage();
             if (errorMessage == null || errorMessage.isEmpty()) {
-                errorMessage = "Đã xảy ra lỗi không xác định trong quá trình cập nhật đơn hàng. Loại lỗi: " + e.getClass().getSimpleName();
+                errorMessage = "Undefined error during update order. Type of error: " + e.getClass().getSimpleName();
             } else {
-                errorMessage = "Lỗi cập nhật đơn hàng: " + errorMessage;
+                errorMessage = "Error in updating order: " + errorMessage;
             }
             Map<String, Object> errorResponse = Map.of(
                     "isSuccess", false,

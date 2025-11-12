@@ -1,5 +1,6 @@
 package com.fu.coffeeshop_management.server.repository;
 
+import com.fu.coffeeshop_management.server.dto.StockItemDetailDTO;
 import com.fu.coffeeshop_management.server.entity.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -74,4 +75,25 @@ public interface ProductRepository extends JpaRepository<Product, UUID>{
     List<Product> findByKeyword(String keyword);
 
     Optional<Product> findByName(String name);
+
+    @Query("SELECT new com.fu.coffeeshop_management.server.dto.StockItemDetailDTO(p.name, s.unit, s.quantityInStock) " +
+            "FROM Product p " +
+            "JOIN p.stock s " +
+            "JOIN p.category c " +
+            "WHERE c.name = 'Ingredient'")
+    List<StockItemDetailDTO> getIngredientStockDetails();
+
+    @Query("SELECT COUNT(p.id) " +
+            "FROM Product p " +
+            "JOIN p.category c " +
+            "WHERE c.name = 'Ingredient'")
+    Long countTotalIngredients();
+
+    @Query("SELECT COUNT(p.id) " +
+            "FROM Product p " +
+            "JOIN p.stock s " +
+            "JOIN p.category c " +
+            "WHERE c.name = 'Ingredient' " +
+            "AND s.reorderLevel <= 3")
+    Long countLowStockIngredients();
 }

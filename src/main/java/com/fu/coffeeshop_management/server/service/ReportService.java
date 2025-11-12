@@ -3,6 +3,7 @@ package com.fu.coffeeshop_management.server.service;
 import com.fu.coffeeshop_management.server.dto.*;
 import com.fu.coffeeshop_management.server.repository.BillRepository;
 import com.fu.coffeeshop_management.server.repository.OrderDetailRepository;
+import com.fu.coffeeshop_management.server.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +27,9 @@ public class ReportService {
 
     @Autowired
     private OrderDetailRepository orderDetailRepository;
+
+    @Autowired
+    private ProductRepository productRepository;
 
     public RevenueReportDTO getRevenueReport(LocalDateTime startDate, LocalDateTime endDate, String filterBy) {
 
@@ -56,17 +60,14 @@ public class ReportService {
                     Long bills = 0L;
 
                     if ("MONTH".equals(filter)) {
-                        // reportYear, reportMonth, totalRevenue, billCount
                         timeLabel = row[0] + "-" + String.format("%02d", row[1]);
                         revenue = (row[2] instanceof Number) ? new BigDecimal(row[2].toString()) : BigDecimal.ZERO;
                         bills = (row[3] instanceof Number) ? ((Number) row[3]).longValue() : 0L;
                     } else if ("WEEK".equals(filter)) {
-                        // reportYearWeek, totalRevenue, billCount
-                        timeLabel = row[0].toString(); // e.g., 202347
+                        timeLabel = row[0].toString();
                         revenue = (row[1] instanceof Number) ? new BigDecimal(row[1].toString()) : BigDecimal.ZERO;
                         bills = (row[2] instanceof Number) ? ((Number) row[2]).longValue() : 0L;
-                    } else { // DAY
-                        // reportDate, totalRevenue, billCount
+                    } else {
                         timeLabel = row[0].toString();
                         revenue = (row[1] instanceof Number) ? new BigDecimal(row[1].toString()) : BigDecimal.ZERO;
                         bills = (row[2] instanceof Number) ? ((Number) row[2]).longValue() : 0L;
@@ -173,5 +174,12 @@ public class ReportService {
                         (BigDecimal) row[2]
                 ))
                 .collect(Collectors.toList());
+    }
+
+    public StockReportDTO getStockReport() {
+        List<StockItemDetailDTO> details = productRepository.getIngredientStockDetails();
+        Long totalItems = productRepository.countTotalIngredients();
+        Long lowStockItems = productRepository.countLowStockIngredients();
+        return new StockReportDTO(totalItems, lowStockItems, details);
     }
 }
