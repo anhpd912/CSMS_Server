@@ -10,11 +10,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-/**
- * Main Spring Security configuration.
- * This class defines the security filter chain, URL permissions,
- * and wires up the JWT filter.
- */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
