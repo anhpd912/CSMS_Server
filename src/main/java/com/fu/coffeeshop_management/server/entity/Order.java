@@ -31,7 +31,7 @@ public class Order {
     private UUID id;
 
     @Column(name = "status", length = 50, nullable = false)
-    private String status; // e.g., "Pending", "Confirmed", "Completed", "Cancelled"
+    private String status;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     @Builder.Default
@@ -51,18 +51,14 @@ public class Order {
     @Builder.Default
     private Set<TableOrder> tableOrders = new HashSet<>();
 
-    // Foreign Key: staff_id -> user.id (The waiter who created the order)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "staff_id", nullable = false)
     private User staff;
 
-    // An order has many items (order_details)
-    // Cascade.ALL means if we delete an order, delete its details too.
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @Builder.Default
     private Set<OrderDetail> orderDetails = new HashSet<>();
 
-    // An order has one bill
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
     private Bill bill;
 }

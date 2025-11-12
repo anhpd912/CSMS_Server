@@ -23,7 +23,7 @@ public class ReportController {
     @Autowired
     private ReportService reportService;
 
-    @GetMapping("/revenue") // Endpoint: /api/reports/revenue
+    @GetMapping("/revenue")
     public ResponseEntity<RevenueReportDTO> getRevenueReport(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateFrom,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateTo,
