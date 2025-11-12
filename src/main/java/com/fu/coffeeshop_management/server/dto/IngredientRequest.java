@@ -32,6 +32,9 @@ public class IngredientRequest {
     @Min(value = 0, message = "Reorder level must be 0 or greater")
     private Integer reorderLevel;
 
+    @Size(max = 50, message = "Unit must not exceed 50 characters")
+    private String unit;
+
     @Size(max = 255, message = "Image link must not exceed 255 characters")
     private String imageLink;
 
