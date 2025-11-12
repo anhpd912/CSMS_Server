@@ -28,5 +28,6 @@ public class IngredientResponse {
     // Stock information
     private Integer quantityInStock;
     private Integer reorderLevel;
+    private String unit;
     private Boolean isLowStock;
 }
