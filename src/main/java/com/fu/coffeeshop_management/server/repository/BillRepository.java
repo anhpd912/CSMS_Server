@@ -67,4 +67,11 @@ public interface BillRepository extends JpaRepository<Bill, UUID> {
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate
     );
+
+
+    @Query("select b from Bill b " +
+            "left join fetch b.order o " +
+            "left join fetch o.staff u " +
+            "order by b.issuedTime desc")
+    List<Bill> findAllFetch();
 }

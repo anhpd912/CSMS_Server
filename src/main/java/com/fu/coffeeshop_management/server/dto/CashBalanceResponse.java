@@ -7,9 +7,6 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
-/**
- * DTO for current cash balance response
- */
 @Data
 @Builder
 @AllArgsConstructor

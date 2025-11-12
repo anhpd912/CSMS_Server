@@ -3,6 +3,7 @@ package com.fu.coffeeshop_management.server.service;
 import com.fu.coffeeshop_management.server.dto.UserRequest;
 import com.fu.coffeeshop_management.server.dto.UserResponse;
 import com.fu.coffeeshop_management.server.dto.UserResponseDTO;
+import com.fu.coffeeshop_management.server.dto.UserUpdateRequest;
 import com.fu.coffeeshop_management.server.entity.Role;
 import com.fu.coffeeshop_management.server.entity.User;
 import com.fu.coffeeshop_management.server.repository.RoleRepository;
@@ -80,7 +81,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponse updateUser(UUID userId, UserRequest userRequest) {
+    public UserResponse updateUser(UUID userId, UserUpdateRequest userRequest) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + userId));
 
