@@ -21,18 +21,6 @@ public class BillController {
     private final BillService billService;
     private final LoyaltyService loyaltyService;
 
-    @GetMapping("/loyalty/search")
-    public ResponseEntity<CustomerSearchResponse> searchCustomer(@RequestParam String phone) {
-        CustomerSearchResponse customer = loyaltyService.searchCustomerByPhone(phone);
-        return ResponseEntity.ok(customer);
-    }
-
-    @PostMapping("/loyalty/members")
-    public ResponseEntity<CustomerSearchResponse> addNewMember(@RequestBody NewCustomerRequest request) {
-        CustomerSearchResponse newCustomer = loyaltyService.addNewMember(request);
-        return new ResponseEntity<>(newCustomer, HttpStatus.CREATED);
-    }
-
     @PostMapping("/bills/calculate")
     public ResponseEntity<BillCalculationResponse> calculateBill(@RequestBody BillGenerationRequest request) {
         BillCalculationResponse calculation = billService.calculateBill(request);

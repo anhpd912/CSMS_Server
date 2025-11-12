@@ -16,7 +16,6 @@ public interface LoyaltyTransactionRepository extends JpaRepository<LoyaltyTrans
         select new com.fu.coffeeshop_management.server.dto.PointsHistoryItem(
             tx.id,
             o.id,
-            /* nếu Order có mã/number, thay o.orderNo; nếu không có, trả null */ 
             null,
             case 
               when coalesce(tx.pointsEarned,0) > 0 then 'EARN' 

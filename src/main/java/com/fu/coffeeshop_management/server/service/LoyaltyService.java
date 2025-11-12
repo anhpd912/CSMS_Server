@@ -3,6 +3,8 @@ package com.fu.coffeeshop_management.server.service;
 import com.fu.coffeeshop_management.server.dto.*;
 import com.fu.coffeeshop_management.server.entity.Customer;
 import com.fu.coffeeshop_management.server.entity.Loyalty;
+import com.fu.coffeeshop_management.server.entity.LoyaltyTransaction;
+import com.fu.coffeeshop_management.server.entity.Order;
 import com.fu.coffeeshop_management.server.exception.BadRequestException;
 import com.fu.coffeeshop_management.server.exception.ConflictException;
 import com.fu.coffeeshop_management.server.exception.NotFoundException;
@@ -13,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -33,7 +36,6 @@ public class LoyaltyService {
         if ("points".equalsIgnoreCase(sortBy)) {
             return customerRepo.findMembersOrderByPointsDesc(query);
         }
-        // default: sort by name asc
         return customerRepo.findMembersOrderByName(query);
     }
 
@@ -53,7 +55,6 @@ public class LoyaltyService {
             c.setFullName(name);
         }
 
-        // phone
         if (req.phone() != null) {
             String phone = req.phone().trim();
             if (phone.isEmpty()) throw new BadRequestException("Phone must not be empty");
@@ -64,7 +65,6 @@ public class LoyaltyService {
             c.setPhone(phone);
         }
 
-        // email (optional)
         if (req.email() != null) {
             String email = req.email().trim();
             if (!email.isEmpty()) {
@@ -78,10 +78,8 @@ public class LoyaltyService {
             }
         }
 
-        // save
         customerRepo.save(c);
 
-        // project DTO detail
         return customerRepo.projectDetailById(customerId)
                 .orElseGet(() -> new LoyaltyMemberDetailResponse(
                         c.getId(), c.getFullName(), c.getPhone(), c.getEmail(),
@@ -102,7 +100,23 @@ public class LoyaltyService {
         return txRepo.findHistoryByCustomerId(customerId);
     }
 
-    @Transactional(readOnly = true) // Cần Transactional để load LAZY
+    @Transactional
+    public void createLoyaltyTransaction(Loyalty loyalty, Order order, int pointsEarned, int pointsSpent) {
+        if (loyalty == null) {
+            return;
+        }
+
+        LoyaltyTransaction transaction = new LoyaltyTransaction();
+        transaction.setLoyalty(loyalty);
+        transaction.setOrder(order);
+        transaction.setPointsEarned(pointsEarned > 0 ? pointsEarned : null);
+        transaction.setPointsSpent(pointsSpent > 0 ? pointsSpent : null);
+        transaction.setTimestamp(LocalDateTime.now());
+
+        txRepo.save(transaction);
+    }
+
+    @Transactional(readOnly = true)
     public CustomerSearchResponse searchCustomerByPhone(String phone) {
         Customer customer = customerRepo.findByPhone(phone)
                 .orElseThrow(() -> new NotFoundException("Customer not found with phone: " + phone));

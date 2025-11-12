@@ -10,9 +10,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
-/**
- * DTO for recording cash transactions during a shift
- */
+
 @Data
 @Builder
 @AllArgsConstructor

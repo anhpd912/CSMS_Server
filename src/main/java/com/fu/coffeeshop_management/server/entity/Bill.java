@@ -11,10 +11,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Entity representation of the 'bill' table.
- * Based on the SDD 'bill' table definition.
- */
 @Getter
 @Setter
 @Builder
