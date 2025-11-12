@@ -3,6 +3,7 @@ package com.fu.coffeeshop_management.server.service;
 import com.fu.coffeeshop_management.server.dto.*;
 import com.fu.coffeeshop_management.server.repository.BillRepository;
 import com.fu.coffeeshop_management.server.repository.OrderDetailRepository;
+import com.fu.coffeeshop_management.server.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +27,9 @@ public class ReportService {
 
     @Autowired
     private OrderDetailRepository orderDetailRepository;
+
+    @Autowired
+    private ProductRepository productRepository;
 
     public RevenueReportDTO getRevenueReport(LocalDateTime startDate, LocalDateTime endDate, String filterBy) {
 
@@ -173,5 +177,12 @@ public class ReportService {
                         (BigDecimal) row[2]
                 ))
                 .collect(Collectors.toList());
+    }
+
+    public StockReportDTO getStockReport() {
+        List<StockItemDetailDTO> details = productRepository.getIngredientStockDetails();
+        Long totalItems = productRepository.countTotalIngredients();
+        Long lowStockItems = productRepository.countLowStockIngredients();
+        return new StockReportDTO(totalItems, lowStockItems, details);
     }
 }

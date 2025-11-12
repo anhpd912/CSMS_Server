@@ -3,6 +3,7 @@ package com.fu.coffeeshop_management.server.controller;
 import com.fu.coffeeshop_management.server.dto.ItemReportDTO;
 import com.fu.coffeeshop_management.server.dto.PeriodItemReportDTO;
 import com.fu.coffeeshop_management.server.dto.RevenueReportDTO;
+import com.fu.coffeeshop_management.server.dto.StockReportDTO;
 import com.fu.coffeeshop_management.server.service.ReportService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -39,6 +40,12 @@ public class ReportController {
             @RequestParam(defaultValue = "DAY") String filterBy
     ) {
         List<PeriodItemReportDTO> report = reportService.getItemReport(dateFrom, dateTo, filterBy);
+        return ResponseEntity.ok(report);
+    }
+
+    @GetMapping("/stock")
+    public ResponseEntity<StockReportDTO> getStockReport() {
+        StockReportDTO report = reportService.getStockReport();
         return ResponseEntity.ok(report);
     }
 }

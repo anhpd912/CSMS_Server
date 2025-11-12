@@ -28,6 +28,9 @@ public class Stock {
     @Builder.Default
     private Integer quantityInStock = 0;
 
+    @Column(name = "unit")
+    private String unit;
+
     @Column(name = "reorder_level")
     private Integer reorderLevel;
 
@@ -39,5 +42,3 @@ public class Stock {
     @JoinColumn(name = "product_id")
     private Product product;
 }
-
-
