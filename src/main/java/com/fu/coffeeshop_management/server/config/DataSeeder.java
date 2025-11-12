@@ -7,6 +7,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -38,7 +39,6 @@ public class DataSeeder implements CommandLineRunner {
     private static final String MANAGER_EMAIL = "manager@coffeeshop.com";
     private static final String WAITER_EMAIL = "waiter@coffeeshop.com";
     private static final String CASHIER_EMAIL = "cashier@coffeeshop.com";
-
 
     // Constants for Status
     private static final String STATUS_AVAILABLE = "Available";
@@ -109,6 +109,7 @@ public class DataSeeder implements CommandLineRunner {
         }
     }
 
+
     private void seedCategoryProduct() {
         if (categoryRepository.findByName(CATEGORY_COFFEE).isEmpty()) {
             categoryRepository.save(Category.builder().description("Coffee drinks").name(CATEGORY_COFFEE).build());
@@ -154,9 +155,20 @@ public class DataSeeder implements CommandLineRunner {
 
     private void saveProductWithStock(String name, String desc, BigDecimal price, String imgLink, Category category, int initialStock) {
         if (productRepository.findByName(name).isEmpty()) {
-            Product product = Product.builder().name(name).description(desc).price(price).imageLink(imgLink).category(category).status(STATUS_ACTIVE).build();
+            Product product = Product.builder()
+                    .name(name)
+                    .description(desc)
+                    .price(price)
+                    .imageLink(imgLink)
+                    .category(category)
+                    .status(STATUS_ACTIVE)
+                    .build();
 
-            Stock stock = Stock.builder().product(product).quantityInStock(initialStock).reorderLevel(10).build();
+            Stock stock = Stock.builder()
+                    .product(product)
+                    .quantityInStock(initialStock)
+                    .reorderLevel(10)
+                    .build();
 
             product.setStock(stock);
             productRepository.save(product);
@@ -191,9 +203,14 @@ public class DataSeeder implements CommandLineRunner {
         Product taroTea = productRepository.findByName("Taro Bubble Tea").orElseThrow(() -> new RuntimeException("Taro Tea not found!"));
 
         // --- Order 1 ---
-        Order order1 = Order.builder().status(STATUS_PENDING).createdAt(LocalDateTime.now().minusMinutes(30)).updatedAt(LocalDateTime.now().minusMinutes(30)).totalPrice(75000.00)
+        Order order1 = Order.builder()
+                .status(STATUS_PENDING)
+                .createdAt(LocalDateTime.now().minusMinutes(30))
+                .updatedAt(LocalDateTime.now().minusMinutes(30))
+                .totalPrice(75000.00)
 //                .table(table101)
-                .staff(waiter).build();
+                .staff(waiter)
+                .build();
 
         OrderDetail detail11 = OrderDetail.builder().product(latte).quantity(1).price(latte.getPrice()).build();
         detail11.setOrder(order1); // <-- FIX: Set back-reference
@@ -208,9 +225,14 @@ public class DataSeeder implements CommandLineRunner {
         tableInfoRepository.save(table101);
 
         // --- Order 2 ---
-        Order order2 = Order.builder().status(STATUS_PENDING).createdAt(LocalDateTime.now().minusHours(2)).updatedAt(LocalDateTime.now().minusHours(2)).totalPrice(70000.00)
+        Order order2 = Order.builder()
+                .status(STATUS_PENDING)
+                .createdAt(LocalDateTime.now().minusHours(2))
+                .updatedAt(LocalDateTime.now().minusHours(2))
+                .totalPrice(70000.00)
 //                .table(table102)
-                .staff(waiter).build();
+                .staff(waiter)
+                .build();
 
         OrderDetail detail21 = OrderDetail.builder().product(espresso).quantity(2).price(espresso.getPrice()).build();
         detail21.setOrder(order2); // <-- FIX: Set back-reference
@@ -222,9 +244,14 @@ public class DataSeeder implements CommandLineRunner {
         tableInfoRepository.save(table102);
 
         // --- Order 3 ---
-        Order order3 = Order.builder().status(STATUS_PENDING).createdAt(LocalDateTime.now().minusDays(1)).updatedAt(LocalDateTime.now().minusDays(1)).totalPrice(48000.00)
+        Order order3 = Order.builder()
+                .status(STATUS_PENDING)
+                .createdAt(LocalDateTime.now().minusDays(1))
+                .updatedAt(LocalDateTime.now().minusDays(1))
+                .totalPrice(48000.00)
 //                .table(table101) // Another order on the same table
-                .staff(waiter).build();
+                .staff(waiter)
+                .build();
 
         OrderDetail detail31 = OrderDetail.builder().product(taroTea).quantity(1).price(taroTea.getPrice()).build();
         detail31.setOrder(order3); // <-- FIX: Set back-reference

@@ -29,5 +29,5 @@ public class CreateTableRequest {
     private Integer seatCount;
 
     @Pattern(regexp = "Available|Occupied|Reserved", message = "Status must be Available, Occupied, or Reserved")
-    private String status; // Default will be "Available" if not provided
+    private String status;
 }

@@ -3,6 +3,7 @@ package com.fu.coffeeshop_management.server.controller;
 import com.fu.coffeeshop_management.server.dto.UserRequest;
 import com.fu.coffeeshop_management.server.dto.UserResponse;
 import com.fu.coffeeshop_management.server.dto.UserResponseDTO;
+import com.fu.coffeeshop_management.server.dto.UserUpdateRequest;
 import com.fu.coffeeshop_management.server.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/users")
@@ -37,5 +39,11 @@ public class UserController {
     public ResponseEntity<UserResponse> createUser(@RequestBody UserRequest userRequest) {
         UserResponse newUser = userService.createUser(userRequest);
         return new ResponseEntity<>(newUser, HttpStatus.CREATED);
+    }
+
+    @PutMapping("/{userId}")
+    public ResponseEntity<UserResponse> updateUser(@PathVariable UUID userId, @RequestBody UserUpdateRequest userRequest) {
+        UserResponse updatedUser = userService.updateUser(userId, userRequest);
+        return ResponseEntity.ok(updatedUser);
     }
 }

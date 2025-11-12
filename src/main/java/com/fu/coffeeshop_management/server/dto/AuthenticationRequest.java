@@ -7,10 +7,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * DTO for handling authentication (login) requests.
- * Based on the SDD 'AuthenticationRequest' class.
- */
 @Data
 @Builder
 @AllArgsConstructor
