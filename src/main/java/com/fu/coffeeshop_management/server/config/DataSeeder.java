@@ -54,12 +54,7 @@ public class DataSeeder implements CommandLineRunner {
     private final ProductRepository productRepository;
     private final OrderRepository orderRepository;
 
-    public DataSeeder(RoleRepository roleRepository,
-                      UserRepository userRepository,
-                      CategoryRepository categoryRepository,
-                      TableInfoRepository tableInfoRepository,
-                      ProductRepository productRepository,
-                      OrderRepository orderRepository) {
+    public DataSeeder(RoleRepository roleRepository, UserRepository userRepository, CategoryRepository categoryRepository, TableInfoRepository tableInfoRepository, ProductRepository productRepository, OrderRepository orderRepository) {
         this.roleRepository = roleRepository;
         this.userRepository = userRepository;
         this.categoryRepository = categoryRepository;
@@ -95,45 +90,25 @@ public class DataSeeder implements CommandLineRunner {
 
     private void seedManager() {
         if (userRepository.findByEmail(MANAGER_EMAIL).isEmpty()) {
-            Role managerRole = roleRepository.findByName(ROLE_MANAGER)
-                    .orElseThrow(() -> new RuntimeException("MANAGER role not found!"));
-            userRepository.save(User.builder().email(MANAGER_EMAIL)
-                    .password(new BCryptPasswordEncoder().encode("Manager123"))
-                    .role(managerRole)
-                    .mobile("0123456780")
-                    .fullname("Manager")
-                    .build()
-            );
+            Role managerRole = roleRepository.findByName(ROLE_MANAGER).orElseThrow(() -> new RuntimeException("MANAGER role not found!"));
+            userRepository.save(User.builder().email(MANAGER_EMAIL).password(new BCryptPasswordEncoder().encode("Manager123")).role(managerRole).mobile("0123456780").fullname("Manager").build());
         }
     }
 
     private void seedWaiter() {
         if (userRepository.findByEmail(WAITER_EMAIL).isEmpty()) {
-            Role waiterRole = roleRepository.findByName(ROLE_WAITER)
-                    .orElseThrow(() -> new RuntimeException("WAITER role not found!"));
-            userRepository.save(User.builder().email(WAITER_EMAIL)
-                    .password(new BCryptPasswordEncoder().encode("Waiter123"))
-                    .role(waiterRole)
-                    .mobile("0987654321")
-                    .fullname("Nhân Viên Phục Vụ")
-                    .build()
-            );
+            Role waiterRole = roleRepository.findByName(ROLE_WAITER).orElseThrow(() -> new RuntimeException("WAITER role not found!"));
+            userRepository.save(User.builder().email(WAITER_EMAIL).password(new BCryptPasswordEncoder().encode("Waiter123")).role(waiterRole).mobile("0987654321").fullname("Nhân Viên Phục Vụ").build());
         }
     }
 
     private void seedCashier() {
-        if (userRepository.findByEmail(WAITER_EMAIL).isEmpty()) {
-            Role cashierRole = roleRepository.findByName(ROLE_CASHIER)
-                    .orElseThrow(() -> new RuntimeException("Cashier role not found!"));
-            userRepository.save(User.builder().email(CASHIER_EMAIL)
-                    .password(new BCryptPasswordEncoder().encode("Cashier123"))
-                    .role(cashierRole)
-                    .mobile("0981782345")
-                    .fullname("Nhân Viên Thu Ngân")
-                    .build()
-            );
+        if (userRepository.findByEmail(CASHIER_EMAIL ).isEmpty()) {
+            Role waiterRole = roleRepository.findByName(ROLE_CASHIER).orElseThrow(() -> new RuntimeException("CASHIER role not found!"));
+            userRepository.save(User.builder().email(CASHIER_EMAIL).password(new BCryptPasswordEncoder().encode("Cashier123")).role(waiterRole).mobile("0987654311").fullname("Nhân viên thu ngân").build());
         }
     }
+
 
     private void seedCategoryProduct() {
         if (categoryRepository.findByName(CATEGORY_COFFEE).isEmpty()) {

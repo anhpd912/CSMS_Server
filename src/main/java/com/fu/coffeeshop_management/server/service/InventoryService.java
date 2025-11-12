@@ -75,6 +75,7 @@ public class InventoryService {
                 .product(savedProduct)  // @MapsId will use product's ID automatically
                 .quantityInStock(0)
                 .reorderLevel(request.getReorderLevel() != null ? request.getReorderLevel() : 10)
+                .unit(request.getUnit())
                 .build();
 
         stockRepository.save(stock);
@@ -120,6 +121,10 @@ public class InventoryService {
         Stock stock = product.getStock();
         if (stock != null && request.getReorderLevel() != null) {
             stock.setReorderLevel(request.getReorderLevel());
+            stockRepository.save(stock);
+        }
+        if (stock != null && request.getUnit() != null) {
+            stock.setUnit(request.getUnit());
             stockRepository.save(stock);
         }
 
@@ -345,10 +350,12 @@ public class InventoryService {
         boolean isLowStock = false;
         Integer quantityInStock = null;
         Integer reorderLevel = null;
+        String unit = null;
 
         if (stock != null) {
             quantityInStock = stock.getQuantityInStock();
             reorderLevel = stock.getReorderLevel();
+            unit = stock.getUnit();
             isLowStock = stock.getReorderLevel() != null && 
                          stock.getQuantityInStock() <= stock.getReorderLevel();
         }
@@ -363,6 +370,7 @@ public class InventoryService {
                 .categoryName(product.getCategory().getName())
                 .quantityInStock(quantityInStock)
                 .reorderLevel(reorderLevel)
+                .unit(unit)
                 .isLowStock(isLowStock)
                 .build();
     }
